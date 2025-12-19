@@ -6,9 +6,11 @@ import {
   Scripts,
   ScrollRestoration,
 } from "react-router";
-import { NotFound } from "~/routes/not-found";
 import type { Route } from "./+types/root";
+import { ConfigProvider } from "antd";
+import { NotFound } from "~/routes/not-found";
 import "./app.css";
+import "antd/dist/antd.css";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -20,7 +22,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Links />
       </head>
       <body>
-        {children}
+        <ConfigProvider theme={{ zeroRuntime: true }}>
+          {children}
+        </ConfigProvider>
         <ScrollRestoration />
         <Scripts />
       </body>
