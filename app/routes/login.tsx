@@ -89,26 +89,23 @@ export default function Login() {
           </p>
           <Form
             size="large"
-            labelCol={{ span: 3 }}
             requiredMark={false}
             onFinish={values => {
               fetcher.submit(values, { method: "post" });
             }}
           >
             <Form.Item<FieldType>
-              label="用户名"
               name="username"
               rules={[{ required: true, message: "用户名不能为空" }]}
             >
-              <Input name="username" />
+              <Input name="username" placeholder="用户名" />
             </Form.Item>
 
             <Form.Item<FieldType>
-              label="密码"
               name="password"
               rules={[{ required: true, message: "密码不能为空" }]}
             >
-              <Input.Password name="password" />
+              <Input.Password name="password" placeholder="密码" />
             </Form.Item>
             <Form.Item<FieldType>
               name="remember"
