@@ -22,7 +22,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Links />
       </head>
       <body>
-        <ConfigProvider theme={{ zeroRuntime: true }}>
+        <ConfigProvider theme={{ zeroRuntime: true }} variant={"filled"}>
           {children}
         </ConfigProvider>
         <ScrollRestoration />
