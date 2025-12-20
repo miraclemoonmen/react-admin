@@ -8,7 +8,7 @@ export function NotFound() {
       title="404"
       subTitle="抱歉，你访问的页面不存在"
       extra={
-        <Button type="primary">
+        <Button href="/" type="primary">
           返回首页
         </Button>
       }
