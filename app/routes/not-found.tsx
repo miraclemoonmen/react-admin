@@ -3,7 +3,7 @@ import { Button, Result } from "antd";
 export function NotFound() {
   return (
     <Result
-      className="self-center"
+      className="h-full content-center"
       status="404"
       title="404"
       subTitle="抱歉，你访问的页面不存在"

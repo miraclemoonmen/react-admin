@@ -3,6 +3,7 @@ import { Button, Checkbox, Form, Input, message } from "antd";
 import { useFetcher, useNavigate } from "react-router";
 import { login } from "~/services/user";
 import { useEffect } from "react";
+import loginBg from "~/assets/login-bg.webp";
 
 type FieldType = {
   username?: string;
@@ -39,7 +40,10 @@ export default function Login() {
   }, [fetcher.data, navigate]);
 
   return (
-    <main className="h-full grid p-28">
+    <main
+      className="h-full grid p-28"
+      style={{ backgroundImage: `url(${loginBg})` }}
+    >
       <section className="grid w-300 h-170  m-auto items-center self-center grid-cols-2 rounded-2xl shadow-2xl overflow-hidden">
         <aside className="relative h-full w-full bg-linear-to-br from-blue-500 to-blue-700 text-white p-12">
           <div className="absolute top-20 left-20 w-64 bg-white text-slate-800 rounded-xl shadow-xl p-4 -rotate-6">
@@ -80,7 +84,7 @@ export default function Login() {
             </p>
           </div>
         </aside>
-        <section className="px-16">
+        <section className="h-full flex flex-col justify-center px-16 bg-white">
           <h1 className="text-2xl font-semibold text-slate-800">
             小恐龙 🦖 正在排队等待注册！
           </h1>
@@ -98,14 +102,22 @@ export default function Login() {
               name="username"
               rules={[{ required: true, message: "用户名不能为空" }]}
             >
-              <Input name="username" placeholder="用户名" />
+              <Input
+                name="username"
+                autoComplete="username"
+                placeholder="用户名"
+              />
             </Form.Item>
 
             <Form.Item<FieldType>
               name="password"
               rules={[{ required: true, message: "密码不能为空" }]}
             >
-              <Input.Password name="password" placeholder="密码" />
+              <Input.Password
+                name="password"
+                autoComplete="current-password"
+                placeholder="密码"
+              />
             </Form.Item>
             <Form.Item<FieldType>
               name="remember"

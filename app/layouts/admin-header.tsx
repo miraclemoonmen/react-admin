@@ -53,7 +53,7 @@ export default function AdminHeader({
         }}
       />
       <div>
-        <Dropdown menu={{ items: menuItems }}>
+        <Dropdown placement="bottomRight" menu={{ items: menuItems }}>
           <Avatar icon={<UserOutlined />} />
         </Dropdown>
       </div>
