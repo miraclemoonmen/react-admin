@@ -1,4 +1,4 @@
-import { Outlet, redirect, useNavigation } from "react-router";
+import { Outlet, redirect } from "react-router";
 
 import { Layout, theme } from "antd";
 import AdminMenu from "~/layouts/admin-menu";
@@ -24,7 +24,6 @@ export default function Index() {
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
-  const navigation = useNavigation();
 
   return (
     <Layout className="min-h-screen!">
