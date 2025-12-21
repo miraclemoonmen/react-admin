@@ -34,7 +34,7 @@ export default function AdminMenu() {
       // theme="dark"
       className="bg-[#F6F6F6]! border-0!"
       mode="inline"
-      defaultSelectedKeys={[location.pathname]}
+      selectedKeys={[location.pathname]}
       items={menuItems}
     />
   );

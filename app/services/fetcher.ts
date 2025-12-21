@@ -26,26 +26,27 @@ export async function fetcher<T = any>(
     baseURL = DEFAULT_BASE_URL,
     ...rest
   } = config;
-  const res = await fetch(baseURL + url, {
-    method,
-    // headers: { /*"Content-Type": "application/json", */...headers },
-    // body: data ? JSON.stringify(data) : undefined,
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams(data).toString(),
-    ...rest,
-  });
-
-  const contentType = res.headers.get("Content-Type") || "";
-  let result: any;
-  if (contentType.includes("application/json")) {
-    result = await res.json();
-  }
-  if (!res.ok) {
-    return Promise.reject({
-      status: res.status,
-      message: result?.message || result || "请求失败",
+  try {
+    const res = await fetch(baseURL + url, {
+      method,
+      // headers: { /*"Content-Type": "application/json", */...headers },
+      // body: data ? JSON.stringify(data) : undefined,
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: data ? new URLSearchParams(data).toString() : null,
+      ...rest,
     });
+    const contentType = res.headers.get("Content-Type") || "";
+    let result: any;
+    if (contentType.includes("application/json")) {
+      result = await res.json();
+    }
+    return result;
+  } catch {
+    // console.log(data)
+    return {
+      data: null,
+      code: -1,
+      message: "网络错误",
+    };
   }
-
-  return result;
 }

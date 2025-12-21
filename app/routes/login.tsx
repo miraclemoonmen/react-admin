@@ -1,6 +1,12 @@
 import type { Route } from "../../.react-router/types/app/routes/+types";
 import { Button, Checkbox, Form, Input, message } from "antd";
-import { useFetcher, useNavigate } from "react-router";
+import {
+  useSubmit,
+  useNavigate,
+  useNavigation,
+  useActionData,
+  redirect,
+} from "react-router";
 import { login } from "~/services/user";
 import { useEffect } from "react";
 import loginBg from "~/assets/login-bg.webp";
@@ -15,7 +21,7 @@ export async function action({ request }: Route.ActionArgs) {
   const formData = await request.formData();
   const res = await login(formData);
   if (res.code === 0) {
-    return new Response(JSON.stringify({ code: 0, msg: "登录成功" }), {
+    return new Response(JSON.stringify(res), {
       status: 200,
       headers: {
         "Content-Type": "application/json",
@@ -24,27 +30,39 @@ export async function action({ request }: Route.ActionArgs) {
       },
     });
   }
-  return { msg: res.message, code: res.code };
+  return res;
+}
+
+export async function loader({ request }: Route.LoaderArgs) {
+  const cookieHeader = request.headers.get("Cookie") || "";
+  const tokenMatch = cookieHeader.match(/token=([^;]+)/);
+  const token = tokenMatch?.[1];
+  if (token) {
+    return redirect("/");
+  }
+  return null;
 }
 
 export default function Login() {
   const navigate = useNavigate();
-  const fetcher = useFetcher();
+  const submit = useSubmit();
+  const actionData = useActionData();
+  const navigation = useNavigation();
   useEffect(() => {
-    if (!fetcher.data) return;
-    const { code, msg } = fetcher.data;
+    if (!actionData) return;
+    const { code, message: msg } = actionData;
     message[code === 0 ? "success" : "error"](msg);
     if (code === 0) {
-      navigate("/");
+      navigate("/", { viewTransition: true });
     }
-  }, [fetcher.data, navigate]);
+  }, [navigate, actionData]);
 
   return (
     <main
-      className="h-full grid p-28"
+      className="min-h-screen grid bg-cover bg-center"
       style={{ backgroundImage: `url(${loginBg})` }}
     >
-      <section className="grid w-300 h-170  m-auto items-center self-center grid-cols-2 rounded-2xl shadow-2xl overflow-hidden">
+      <section className="grid w-300 h-170 items-center self-center justify-self-center grid-cols-2 rounded-2xl shadow-2xl overflow-hidden">
         <aside className="relative h-full w-full bg-linear-to-br from-blue-500 to-blue-700 text-white p-12">
           <div className="absolute top-20 left-20 w-64 bg-white text-slate-800 rounded-xl shadow-xl p-4 -rotate-6">
             <div className="h-28 bg-yellow-200 rounded-lg mb-3"></div>
@@ -95,7 +113,7 @@ export default function Login() {
             size="large"
             requiredMark={false}
             onFinish={values => {
-              fetcher.submit(values, { method: "post" });
+              submit(values, { method: "post" });
             }}
           >
             <Form.Item<FieldType>
@@ -131,7 +149,7 @@ export default function Login() {
                 type="primary"
                 htmlType="submit"
                 block
-                loading={fetcher.state === "submitting"}
+                loading={navigation.state !== "idle"}
               >
                 登录
               </Button>
