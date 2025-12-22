@@ -6,4 +6,13 @@ import devtoolsJson from "vite-plugin-devtools-json";
 
 export default defineConfig({
   plugins: [devtoolsJson(), tailwindcss(), reactRouter(), tsconfigPaths()],
+  server: {
+    proxy: {
+      "/api": {
+        target: "http://localhost",
+        changeOrigin: true,
+        rewrite: path => path.replace(/^\/api/, ""),
+      },
+    },
+  },
 });

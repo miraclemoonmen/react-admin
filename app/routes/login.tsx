@@ -1,12 +1,6 @@
 import type { Route } from "../../.react-router/types/app/routes/+types";
 import { Button, Checkbox, Form, Input, message } from "antd";
-import {
-  useSubmit,
-  useNavigate,
-  useNavigation,
-  useActionData,
-  redirect,
-} from "react-router";
+import { useActionData, useNavigate, useNavigation, useSubmit } from "react-router";
 import { login } from "~/services/user";
 import { useEffect } from "react";
 import loginBg from "~/assets/login-bg.webp";
@@ -17,30 +11,9 @@ type FieldType = {
   remember?: string;
 };
 
-export async function action({ request }: Route.ActionArgs) {
+export async function clientAction({ request }: Route.ActionArgs) {
   const formData = await request.formData();
-  const res = await login(formData);
-  if (res.code === 0) {
-    return new Response(JSON.stringify(res), {
-      status: 200,
-      headers: {
-        "Content-Type": "application/json",
-        "Cache-Control": "no-store",
-        "Set-Cookie": `token=${res.data}; HttpOnly; Path=/; Max-Age=3600`,
-      },
-    });
-  }
-  return res;
-}
-
-export async function loader({ request }: Route.LoaderArgs) {
-  const cookieHeader = request.headers.get("Cookie") || "";
-  const tokenMatch = cookieHeader.match(/token=([^;]+)/);
-  const token = tokenMatch?.[1];
-  if (token) {
-    return redirect("/");
-  }
-  return null;
+  return await login(formData);
 }
 
 export default function Login() {

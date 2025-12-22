@@ -10,9 +10,14 @@ import type { Route } from "./+types/root";
 import { ConfigProvider } from "antd";
 import { NotFound } from "~/routes/not-found";
 import "./app.css";
-import "antd/dist/antd.css";
 import zhCN from "antd/locale/zh_CN";
 import "dayjs/locale/zh-cn";
+
+export function meta() {
+  return [
+    { title: "Very cool app" }
+  ];
+}
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -24,11 +29,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Links />
       </head>
       <body>
-        <ConfigProvider
-          theme={{ zeroRuntime: true }}
-          variant={"filled"}
-          locale={zhCN}
-        >
+        <ConfigProvider variant={"filled"} locale={zhCN}>
           {children}
         </ConfigProvider>
         <ScrollRestoration />

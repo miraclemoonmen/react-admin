@@ -9,7 +9,7 @@ export async function login(data: any) {
 
 export async function list(data: any) {
   return await fetcher<string>(
-    `/category/list?name=${data.username}&pageNum=${data.page}&pageSize=${data.pageSize}`,
+    `/category/list?name=${data.username}&pageNum=${data.page}&pageSize=${data.pageSize}&time=${data.time}`,
     {
       method: "GET",
     },

@@ -1,102 +1,113 @@
+import { Button, Form, Input, Table, DatePicker } from "antd";
 import type { TableProps } from "antd";
-import { Button, Form, Input, Table } from "antd";
 import { useLoaderData, useNavigation, useSearchParams } from "react-router";
 import debounce from "lodash/debounce";
 import { list } from "~/services/user";
 import type { Route } from "../../../.react-router/types/app/routes/user/+types";
 import { useEffect, useMemo } from "react";
+const { RangePicker } = DatePicker;
+import dayjs, { Dayjs } from "dayjs";
 
-type FieldType = {
+interface DataType {
+  id: string;
+  name: string;
+  createTime: string;
+}
+const columns: TableProps<DataType>["columns"] = [
+  {
+    title: "id",
+    dataIndex: "id",
+    key: "id",
+  },
+  {
+    title: "Name",
+    dataIndex: "name",
+    key: "name",
+  },
+  {
+    title: "createTime",
+    dataIndex: "createTime",
+    key: "createTime",
+  },
+];
+
+interface FormValues {
   username?: string;
-  password?: string;
-  remember?: string;
-};
+  time?: [Dayjs, Dayjs];
+}
 
-export async function loader({ request }: Route.ActionArgs) {
-  const url = new URL(request.url);
-  const username = url.searchParams.get("username") || "";
-  const page = url.searchParams.get("page") || 1;
-  const pageSize = url.searchParams.get("pageSize") || 10;
-  return await list({ username, page, pageSize });
+export async function clientLoader({ request }: Route.ActionArgs) {
+  const { searchParams } = new URL(request.url);
+  const username = searchParams.get("username") || "";
+  const page = searchParams.get("page") || 1;
+  const pageSize = searchParams.get("pageSize") || 10;
+  const time = searchParams.get("time") || "";
+  return await list({ username, page, pageSize, time });
 }
 
 export default function User() {
-  interface DataType {
-    key: string;
-    name: string;
-    age: number;
-    address: string;
-    tags: string[];
-  }
-  const columns: TableProps<DataType>["columns"] = [
-    {
-      title: "id",
-      dataIndex: "id",
-      key: "id",
-    },
-    {
-      title: "Name",
-      dataIndex: "name",
-      key: "name",
-    },
-    {
-      title: "createTime",
-      dataIndex: "createTime",
-      key: "createTime",
-    },
-  ];
-  const data = useLoaderData();
+  const { data } = useLoaderData();
   const navigation = useNavigation();
   const [searchParams, setSearchParams] = useSearchParams();
-
-  const [form] = Form.useForm();
-
+  const formInitialValues: FormValues = useMemo(() => {
+    const params = new URLSearchParams(window.location.search);
+    const timeParam = params.getAll("time").map(t => dayjs(t));
+    return {
+      username: params.get("username") || "",
+      time: timeParam.length === 2 ? [timeParam[0], timeParam[1]] : undefined,
+    };
+  }, []);
   const debouncedSubmit = useMemo(
     () =>
-      debounce((values: any) => {
-        const params = new URLSearchParams(window.location.search);
+      debounce((values: FormValues) => {
+        const params = new URLSearchParams(searchParams.toString());
         params.set("username", values.username || "");
+        params.delete("time");
+        if (values.time?.length === 2) {
+          values.time.forEach(d => params.append("time", d.toISOString()));
+        }
         params.set("page", "1");
         setSearchParams(params, { replace: true });
       }, 300),
-    [setSearchParams],
+    [searchParams, setSearchParams],
   );
 
-  useEffect(() => {
-    return () => debouncedSubmit.cancel();
-  }, [debouncedSubmit]);
+  useEffect(() => () => debouncedSubmit.cancel(), [debouncedSubmit]);
 
   return (
     <section>
       <header className="flex justify-between mb-4">
         <Form
-          form={form}
-          size="large"
           layout="inline"
-          initialValues={{ username: searchParams.get("username") || "" }}
+          initialValues={formInitialValues}
           onValuesChange={(_, allValues) => {
             debouncedSubmit(allValues);
           }}
         >
-          <Form.Item<FieldType> name="username">
+          <Form.Item name="username">
             <Input placeholder="用户名" />
+          </Form.Item>
+          <Form.Item name="time">
+            <RangePicker />
           </Form.Item>
         </Form>
         <div className="actions">
-          <Button size="large" type="primary">
-            新增
-          </Button>
+          <Button type="primary">新增</Button>
         </div>
       </header>
       <Table<DataType>
-        loading={navigation.state === "loading"}
+        loading={{
+          spinning: navigation.state === "loading",
+          delay: 150,
+          size: "large",
+        }}
         columns={columns}
-        dataSource={data.data.list}
+        dataSource={data.list}
         rowKey="id"
         pagination={{
-          current: data.data.pageNum,
-          pageSize: data.data.pageSize, // 每页显示条数
-          total: data.data.total,
+          current: data.pageNum,
+          pageSize: data.pageSize, // 每页显示条数
+          total: data.total,
           showSizeChanger: true, // 是否可以修改 pageSize
           pageSizeOptions: ["5", "10", "20"],
           showQuickJumper: true, // 快速跳转页码
