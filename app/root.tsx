@@ -8,15 +8,13 @@ import {
 } from "react-router";
 import type { Route } from "./+types/root";
 import { ConfigProvider } from "antd";
-import { NotFound } from "~/routes/not-found";
+import { ErrorPage } from "~/routes/ErrorPage";
 import "./app.css";
 import zhCN from "antd/locale/zh_CN";
 import "dayjs/locale/zh-cn";
 
 export function meta() {
-  return [
-    { title: "Very cool app" }
-  ];
+  return [{ title: "Very cool app" }];
 }
 
 export function Layout({ children }: { children: React.ReactNode }) {
@@ -44,29 +42,20 @@ export default function App() {
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
-  let message = "Oops!";
-  let details = "An unexpected error occur" + "red.";
-  let stack: string | undefined;
-
+  console.error(error);
   if (isRouteErrorResponse(error)) {
-    message = error.status === 404 ? "404" : "Error";
-    details = error.statusText || details;
-  } else if (import.meta.env.DEV && error && error instanceof Error) {
-    details = error.message;
-    stack = error.stack;
-  }
-
-  return message === "404" ? (
-    <NotFound />
-  ) : (
-    <main className="pt-16 p-4 container mx-auto">
-      <h1>{message}</h1>
-      <p>{details}</p>
-      {stack && (
+    return <ErrorPage status={error.status} text={error.data} />;
+  } else if (error instanceof Error) {
+    return (
+      <main className="pt-16 p-4 container mx-auto">
+        <h1>Oops!</h1>
+        <p>{error.message}</p>
         <pre className="w-full p-4 overflow-x-auto">
-          <code>{stack}</code>
+          <code>{error.stack}</code>
         </pre>
-      )}
-    </main>
-  );
+      </main>
+    );
+  } else {
+    return <h1>Unknown Error</h1>;
+  }
 }

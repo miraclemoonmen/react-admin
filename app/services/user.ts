@@ -1,17 +1,27 @@
-import { fetcher } from "~/services/fetcher";
+import { request } from "~/services/request";
 
-export async function login(data: any) {
-  return await fetcher<string>("/login", {
+export function login(data: any) {
+  return request("/login", {
     method: "POST",
     data,
   });
 }
 
-export async function list(data: any) {
-  return await fetcher<string>(
-    `/category/list?name=${data.username}&pageNum=${data.page}&pageSize=${data.pageSize}&time=${data.time}`,
-    {
-      method: "GET",
-    },
-  );
+export async function getCurrentUser() {
+  return request(`/me`, {
+    method: "GET",
+  });
+}
+
+export async function getUsers(params: any) {
+  return request(`/user`, {
+    method: "GET",
+    data: params,
+  });
+}
+
+export async function getPermissions() {
+  return request(`/me/permissions`, {
+    method: "GET",
+  });
 }

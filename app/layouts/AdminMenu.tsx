@@ -21,7 +21,7 @@ export default function AdminMenu() {
       label: "nav 2",
     },
     {
-      key: "3",
+      key: "/logi1n",
       icon: <UploadOutlined />,
       label: "nav 3",
     },

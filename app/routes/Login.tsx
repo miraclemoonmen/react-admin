@@ -1,6 +1,11 @@
 import type { Route } from "../../.react-router/types/app/routes/+types";
 import { Button, Checkbox, Form, Input, message } from "antd";
-import { useActionData, useNavigate, useNavigation, useSubmit } from "react-router";
+import {
+  useActionData,
+  useNavigate,
+  useNavigation,
+  useSubmit,
+} from "react-router";
 import { login } from "~/services/user";
 import { useEffect } from "react";
 import loginBg from "~/assets/login-bg.webp";
@@ -12,8 +17,7 @@ type FieldType = {
 };
 
 export async function clientAction({ request }: Route.ActionArgs) {
-  const formData = await request.formData();
-  return await login(formData);
+  return await login(await request.formData());
 }
 
 export default function Login() {
@@ -23,7 +27,7 @@ export default function Login() {
   const navigation = useNavigation();
   useEffect(() => {
     if (!actionData) return;
-    const { code, message: msg } = actionData;
+    const { code, msg } = actionData;
     message[code === 0 ? "success" : "error"](msg);
     if (code === 0) {
       navigate("/", { viewTransition: true });
@@ -93,11 +97,7 @@ export default function Login() {
               name="username"
               rules={[{ required: true, message: "用户名不能为空" }]}
             >
-              <Input
-                name="username"
-                autoComplete="username"
-                placeholder="用户名"
-              />
+              <Input autoComplete="username" placeholder="用户名" />
             </Form.Item>
 
             <Form.Item<FieldType>
@@ -105,7 +105,6 @@ export default function Login() {
               rules={[{ required: true, message: "密码不能为空" }]}
             >
               <Input.Password
-                name="password"
                 autoComplete="current-password"
                 placeholder="密码"
               />

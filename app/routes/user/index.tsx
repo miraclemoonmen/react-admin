@@ -2,11 +2,12 @@ import { Button, Form, Input, Table, DatePicker } from "antd";
 import type { TableProps } from "antd";
 import { useLoaderData, useNavigation, useSearchParams } from "react-router";
 import debounce from "lodash/debounce";
-import { list } from "~/services/user";
+import { getUsers } from "~/services/user";
 import type { Route } from "../../../.react-router/types/app/routes/user/+types";
 import { useEffect, useMemo } from "react";
 const { RangePicker } = DatePicker;
 import dayjs, { Dayjs } from "dayjs";
+import { guardPermission } from "~/guards/ensurePermission";
 
 interface DataType {
   id: string;
@@ -15,17 +16,22 @@ interface DataType {
 }
 const columns: TableProps<DataType>["columns"] = [
   {
-    title: "id",
+    title: "ID",
     dataIndex: "id",
     key: "id",
   },
   {
-    title: "Name",
+    title: "用户名",
+    dataIndex: "username",
+    key: "username",
+  },
+  {
+    title: "姓名",
     dataIndex: "name",
     key: "name",
   },
   {
-    title: "createTime",
+    title: "创建时间",
     dataIndex: "createTime",
     key: "createTime",
   },
@@ -37,12 +43,15 @@ interface FormValues {
 }
 
 export async function clientLoader({ request }: Route.ActionArgs) {
-  const { searchParams } = new URL(request.url);
-  const username = searchParams.get("username") || "";
-  const page = searchParams.get("page") || 1;
-  const pageSize = searchParams.get("pageSize") || 10;
-  const time = searchParams.get("time") || "";
-  return await list({ username, page, pageSize, time });
+  await guardPermission("USER:SELECT");
+  const urlParams = new URL(request.url).searchParams;
+  const params = {
+    username: urlParams.get("username") || "",
+    pageNum: Number(urlParams.get("page") || 1),
+    pageSize: Number(urlParams.get("pageSize") || 10),
+    time: urlParams.getAll("time") || [],
+  };
+  return await getUsers(params);
 }
 
 export default function User() {
@@ -102,9 +111,9 @@ export default function User() {
           size: "large",
         }}
         columns={columns}
-        dataSource={data.list}
+        dataSource={data}
         rowKey="id"
-        pagination={{
+        /*        pagination={{
           current: data.pageNum,
           pageSize: data.pageSize, // 每页显示条数
           total: data.total,
@@ -117,7 +126,7 @@ export default function User() {
             params.set("pageSize", ps.toString());
             setSearchParams(params);
           },
-        }}
+        }}*/
       />
     </section>
   );
