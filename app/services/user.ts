@@ -14,7 +14,7 @@ export async function getCurrentUser() {
 }
 
 export async function getUsers(params: any) {
-  return request(`/user`, {
+  return request(`/users`, {
     method: "GET",
     data: params,
   });
@@ -23,5 +23,25 @@ export async function getUsers(params: any) {
 export async function getPermissions() {
   return request(`/me/permissions`, {
     method: "GET",
+  });
+}
+
+export async function create(data: any) {
+  return request(`/users`, {
+    method: "POST",
+    data,
+  });
+}
+
+export async function update(data: any) {
+  return request(`/users/${data.id}`, {
+    method: "PATCH",
+    data,
+  });
+}
+
+export async function remove(data: any) {
+  return request(`/users/${data.id}`, {
+    method: "DELETE",
   });
 }

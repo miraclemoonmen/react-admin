@@ -1,5 +1,4 @@
 import { Outlet, redirect } from "react-router";
-
 import { Layout, message, theme } from "antd";
 import AdminMenu from "~/layouts/AdminMenu";
 import AdminHeader from "~/layouts/AdminHeader";
@@ -7,14 +6,18 @@ import { useState } from "react";
 import { getCurrentUser } from "~/services/user";
 const { Sider, Content } = Layout;
 
+export function shouldRevalidate() {
+  return false;
+}
+
 export async function clientLoader() {
-  const res = await getCurrentUser();
+  /*const res = await getCurrentUser();
   if (res.code === 0) {
     return res;
   } else {
     message.error(res.msg);
     throw redirect("/login");
-  }
+  }*/
 }
 
 export default function Index() {

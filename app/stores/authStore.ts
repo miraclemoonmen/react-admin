@@ -14,9 +14,12 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
   checkPermission: async role => {
     if (get().roles.length === 0) {
       const { data } = await getPermissions();
+      if (data === null) {
+        return false;
+      }
       set({ roles: data });
     }
     return get().roles.includes(role);
   },
-  clearAuth: () => set({ roles: [], userId: null })
+  clearAuth: () => set({ roles: [], userId: null }),
 }));
