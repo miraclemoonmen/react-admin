@@ -1,3 +1,5 @@
+import { redirect } from "react-router";
+
 type Method = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
 
 export interface FetchOptions extends RequestInit {
@@ -30,7 +32,7 @@ export async function request<T = any>(
     const params = new URLSearchParams(data).toString();
     fetchUrl += (fetchUrl.includes("?") ? "&" : "?") + params;
   } else if (data) {
- /*   const payload = data instanceof FormData ? Object.fromEntries(data) : data;
+    /*   const payload = data instanceof FormData ? Object.fromEntries(data) : data;
     body = JSON.stringify(payload);
     requestHeaders["Content-Type"] = "application/json";*/
     if (data instanceof FormData) {
@@ -55,6 +57,9 @@ export async function request<T = any>(
   });
 
   if (!res.ok) {
+    if (res.status === 401) {
+      throw redirect("/login");
+    }
     throw new Response("抱歉，服务器出错了", { status: 500 });
   }
 

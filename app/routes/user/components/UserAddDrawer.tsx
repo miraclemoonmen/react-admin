@@ -89,18 +89,18 @@ export default function UserAddDrawer({ open, onClose }: Props) {
             </Form.Item>
           </Col>
           <Col span={12}>
-            <Form.Item label="性别" name="sex">
+            <Form.Item label="性别" name="gender">
               <Radio.Group>
-                <Radio value="男">男</Radio>
-                <Radio value="女">女</Radio>
+                <Radio value={1}>男</Radio>
+                <Radio value={2}>女</Radio>
               </Radio.Group>
             </Form.Item>
           </Col>
         </Row>
 
         <Form.Item
-          label="联系电话"
-          name="tel"
+          label="手机号"
+          name="phone"
           rules={[{ pattern: /^1[3-9]\d{9}$/, message: "请输入正确的手机号" }]}
         >
           <Input placeholder="131********" />

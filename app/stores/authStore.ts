@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { getPermissions } from "~/services/user";
+import { getCurrentUser, getPermissions } from "~/services/user";
 
 interface AuthState {
   roles: string[];
@@ -13,11 +13,11 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
   userId: null,
   checkPermission: async role => {
     if (get().roles.length === 0) {
-      const { data } = await getPermissions();
+      const { data } = await getCurrentUser();
       if (data === null) {
         return false;
       }
-      set({ roles: data });
+      set({ roles: data.permissions });
     }
     return get().roles.includes(role);
   },

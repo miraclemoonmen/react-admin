@@ -14,3 +14,7 @@ body {
     color-scheme: dark;
   }
 }
+
+.ant-pagination {
+  @apply mb-0!;
+}

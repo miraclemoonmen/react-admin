@@ -9,6 +9,7 @@ import {
   Popconfirm,
   Space,
   type TableProps,
+  message,
 } from "antd";
 import { useLoaderData, useNavigation, useRevalidator } from "react-router";
 import { getUsers, remove } from "~/services/user";
@@ -24,6 +25,7 @@ import {
   ExclamationCircleFilled,
 } from "@ant-design/icons";
 import { useTableQuery } from "~/routes/user/useTableQuery";
+import { guardPermission } from "~/guards/ensurePermission";
 
 interface DataType {
   id: string;
@@ -38,14 +40,14 @@ interface FormValues {
 }
 
 export async function clientLoader({ request }: Route.ActionArgs) {
-  // await guardPermission("USER:SELECT");
+  await guardPermission("sys:user:list");
   const urlParams = new URL(request.url).searchParams;
   const params = {
     keyword: urlParams.get("name") || "",
     page: Number(urlParams.get("page") || 1),
     size: Number(urlParams.get("size") || 10),
     createTimeRange: urlParams.getAll("createTimeRange") || [],
-    status: urlParams.get("status") || "0",
+    status: urlParams.get("status") || 0,
   };
   return await getUsers(params);
 }
@@ -126,8 +128,13 @@ export default function User() {
             title="确认删除该用户？"
             description="删除后该用户将无法登录，且关联数据可能受影响。"
             onConfirm={async () => {
-              await remove(record);
-              await revalidator.revalidate();
+              const { code, msg } = await remove(record);
+              if (code === 0) {
+                message.success(msg);
+                await revalidator.revalidate();
+              } else {
+                message.error(msg);
+              }
             }}
             okText="确认"
             cancelText="取消"
@@ -164,7 +171,7 @@ export default function User() {
     const params = new URLSearchParams(searchParams);
     params.set("page", String(page));
     params.set("size", String(size));
-    setSearchParams(params);
+    setSearchParams(params, { preventScrollReset: true });
   };
 
   return (
@@ -219,6 +226,7 @@ export default function User() {
           delay: 150,
           size: "large",
         }}
+        scroll={{ y: "calc(100vh - 311px)" }}
         columns={columns}
         dataSource={data.list}
         rowKey="id"

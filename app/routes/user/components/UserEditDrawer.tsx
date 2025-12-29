@@ -94,7 +94,7 @@ export default function UserAddDrawer({ open, onClose, initialValues }: Props) {
         </Row>
 
         <Form.Item
-          label="联系电话"
+          label="手机号"
           name="phone"
           rules={[{ pattern: /^1[3-9]\d{9}$/, message: "请输入正确的手机号" }]}
         >

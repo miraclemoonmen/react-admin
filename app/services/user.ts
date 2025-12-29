@@ -8,7 +8,7 @@ export function login(data: any) {
 }
 
 export async function getCurrentUser() {
-  return request(`/me`, {
+  return request(`/auth/getInfo`, {
     method: "GET",
   });
 }
