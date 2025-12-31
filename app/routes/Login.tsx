@@ -1,6 +1,7 @@
 import type { Route } from "../../.react-router/types/app/routes/+types";
 import { Button, Checkbox, Form, Input, message } from "antd";
 import {
+  redirect,
   useActionData,
   useNavigate,
   useNavigation,
@@ -17,7 +18,11 @@ type FieldType = {
 };
 
 export async function clientAction({ request }: Route.ActionArgs) {
-  return await login(await request.formData());
+  const res = await login(await request.formData());
+  if (res.code === 0) {
+    return redirect("/");
+  }
+  return res;
 }
 
 export default function Login() {
@@ -27,11 +32,8 @@ export default function Login() {
   const navigation = useNavigation();
   useEffect(() => {
     if (!actionData) return;
-    const { code, msg } = actionData;
-    message[code === 0 ? "success" : "error"](msg);
-    if (code === 0) {
-      navigate("/", { viewTransition: true });
-    }
+    const { msg } = actionData;
+    message["error"](msg);
   }, [navigate, actionData]);
 
   return (

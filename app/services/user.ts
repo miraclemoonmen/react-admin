@@ -20,12 +20,6 @@ export async function getUsers(params: any) {
   });
 }
 
-export async function getPermissions() {
-  return request(`/me/permissions`, {
-    method: "GET",
-  });
-}
-
 export async function create(data: any) {
   return request(`/users`, {
     method: "POST",

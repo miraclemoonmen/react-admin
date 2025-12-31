@@ -26,6 +26,8 @@ import {
 } from "@ant-design/icons";
 import { useTableQuery } from "~/routes/user/useTableQuery";
 import { guardPermission } from "~/guards/ensurePermission";
+import { getRoles } from "~/services/role";
+import RoleCars from "~/routes/user/components/RoleCards";
 
 interface DataType {
   id: string;
@@ -39,6 +41,7 @@ interface FormValues {
   createTimeRange?: [Dayjs, Dayjs];
 }
 
+
 export async function clientLoader({ request }: Route.ActionArgs) {
   await guardPermission("sys:user:list");
   const urlParams = new URL(request.url).searchParams;
@@ -49,12 +52,26 @@ export async function clientLoader({ request }: Route.ActionArgs) {
     createTimeRange: urlParams.getAll("createTimeRange") || [],
     status: urlParams.get("status") || 0,
   };
-  return await getUsers(params);
+
+  if (urlParams.get("type") === "roles") {
+    const rolesRes = await getRoles();
+    return { roles: rolesRes.data };
+  }
+  const [rolesRes, usersRes] = await Promise.all([
+    getRoles(),
+    getUsers(params),
+  ]);
+  return {
+    roles: rolesRes.data,
+    users: usersRes.data,
+  };
 }
 
 export default function User() {
-  const [addOpen, setAddOpen] = useState(false);
-  const [editOpen, setEditOpen] = useState(false);
+  const [modalStatus, setModalStatus] = useState({
+    userAdd: false,
+    userEdit: false,
+  });
   const [currentRecord, setCurrentRecord] = useState<any>(null);
   const revalidator = useRevalidator();
   const columns: TableProps<DataType>["columns"] = [
@@ -117,7 +134,7 @@ export default function User() {
             size="small"
             onClick={() => {
               setCurrentRecord(record);
-              setEditOpen(true);
+              setModalStatus(pre => ({ ...pre, userEdit: true }));
             }}
             type="text"
             icon={<EditOutlined />}
@@ -151,8 +168,6 @@ export default function User() {
     },
   ];
   const navigation = useNavigation();
-
-  // 只需要定义哪些是时间字段，其他的它会自动根据 Form 里的 Name 匹配
   const {
     form,
     formInitialValues,
@@ -164,9 +179,8 @@ export default function User() {
     dateFields: ["createTimeRange"],
   });
 
-  const { data } = useLoaderData();
+  const { users } = useLoaderData() as any;
 
-  // 分页也可以直接复用逻辑
   const onPageChange = (page: number, size: number) => {
     const params = new URLSearchParams(searchParams);
     params.set("page", String(page));
@@ -175,73 +189,89 @@ export default function User() {
   };
 
   return (
-    <section>
-      <header className="flex justify-between mb-4">
-        <Form
-          form={form}
-          layout="inline"
-          initialValues={formInitialValues}
-          onValuesChange={(_, allValues) => {
-            handleSearch(allValues);
-          }}
-        >
-          <Form.Item name="name">
-            <Input placeholder="用户名/昵称" />
-          </Form.Item>
-          <Form.Item name="createTimeRange">
-            <RangePicker />
-          </Form.Item>
-          <Form.Item name="status">
-            <Select
-              placeholder="账号状态"
-              style={{ width: 120 }}
-              allowClear
-              options={[
-                { value: "0", label: "正常" },
-                { value: "1", label: "停用" },
-                { value: "2", label: "锁定" },
-              ]}
-            />
-          </Form.Item>
-        </Form>
-        <Flex gap="small" wrap>
-          <Button onClick={handleReset}>重置</Button>
-          <Button type="primary" onClick={() => setAddOpen(!addOpen)}>
-            新增
-          </Button>
-          <UserAddDrawer open={addOpen} onClose={() => setAddOpen(false)} />
-          <UserEditDrawer
-            initialValues={currentRecord}
-            open={editOpen}
-            onClose={() => {
-              setEditOpen(false);
-              setCurrentRecord(null);
+    <>
+      <RoleCars />
+      <div className="mb-6 mt-6">
+        <h2 className="text-xl font-bold text-gray-800">用户</h2>
+        <p className="text-sm text-gray-400 mt-1.5 leading-relaxed max-w-3xl">
+          所有用户的账号信息，以及他们当前所属的角色权限。
+        </p>
+      </div>
+      <section className="mt-5 bg-white p-5 rounded-3xl shadow-sm border border-gray-50">
+        <header className="flex justify-between mb-4">
+          <Form
+            form={form}
+            layout="inline"
+            initialValues={formInitialValues}
+            onValuesChange={(_, allValues) => {
+              handleSearch(allValues);
             }}
-          />
-        </Flex>
-      </header>
-      <Table<DataType>
-        loading={{
-          spinning: navigation.state === "loading",
-          delay: 150,
-          size: "large",
-        }}
-        scroll={{ y: "calc(100vh - 311px)" }}
-        columns={columns}
-        dataSource={data.list}
-        rowKey="id"
-        pagination={{
-          current: data.page,
-          pageSize: data.size,
-          total: data.total,
-          showSizeChanger: true,
-          pageSizeOptions: ["5", "10", "20"],
-          showQuickJumper: true, // 快速跳转页码
-          onChange: (p, ps) => {
-            onPageChange(p, ps);
-          },
-        }}
-      />
-    </section>
+          >
+            <Form.Item name="name">
+              <Input placeholder="用户名/昵称" />
+            </Form.Item>
+            <Form.Item name="createTimeRange">
+              <RangePicker />
+            </Form.Item>
+            <Form.Item name="status">
+              <Select
+                placeholder="账号状态"
+                style={{ width: 120 }}
+                allowClear
+                options={[
+                  { value: "0", label: "正常" },
+                  { value: "1", label: "停用" },
+                  { value: "2", label: "锁定" },
+                ]}
+              />
+            </Form.Item>
+          </Form>
+          <Flex gap="small" wrap>
+            <Button onClick={handleReset}>重置</Button>
+            <Button
+              type="primary"
+              onClick={() => setModalStatus(pre => ({ ...pre, userAdd: true }))}
+            >
+              新增
+            </Button>
+            <UserAddDrawer
+              open={modalStatus.userAdd}
+              onClose={() =>
+                setModalStatus(pre => ({ ...pre, userAdd: false }))
+              }
+            />
+            <UserEditDrawer
+              initialValues={currentRecord}
+              open={modalStatus.userEdit}
+              onClose={() => {
+                setModalStatus(pre => ({ ...pre, userEdit: false }));
+                setCurrentRecord(null);
+              }}
+            />
+          </Flex>
+        </header>
+        <Table<DataType>
+          loading={{
+            spinning: navigation.state === "loading",
+            delay: 150,
+            size: "large",
+          }}
+          columns={columns}
+          dataSource={users.list}
+          rowKey="id"
+          pagination={{
+            current: users.page,
+            pageSize: users.size,
+            total: users.total,
+            showSizeChanger: true,
+            pageSizeOptions: ["5", "10", "20"],
+            showQuickJumper: true, // 快速跳转页码
+            onChange: (p, ps) => {
+              onPageChange(p, ps);
+            },
+          }}
+        />
+      </section>
+    </>
   );
 }

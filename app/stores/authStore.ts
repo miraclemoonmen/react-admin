@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { getCurrentUser, getPermissions } from "~/services/user";
+import { getCurrentUser } from "~/services/user";
 
 interface AuthState {
   roles: string[];

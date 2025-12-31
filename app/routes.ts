@@ -8,7 +8,7 @@ import {
 export default [
   route("login", "routes/login.tsx"), //登录
   layout("routes/index.tsx", [
-    index("routes/dashboard/index.tsx"), //控制台
-    route("user", "routes/user/index.tsx")
+    index("routes/dashboard/index.tsx"),
+    route("system/user", "routes/user/index.tsx"),
   ]),
 ] satisfies RouteConfig;

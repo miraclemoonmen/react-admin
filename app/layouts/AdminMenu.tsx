@@ -1,41 +1,24 @@
 import { Menu } from "antd";
 import { useLocation, useNavigate } from "react-router";
-import {
-  UploadOutlined,
-  UserOutlined,
-  VideoCameraOutlined,
-} from "@ant-design/icons";
+import { useState } from "react";
 
-export default function AdminMenu() {
+export default function AdminMenu({ menu }: any) {
   const location = useLocation();
   const navigate = useNavigate();
-  const menuItems = [
-    {
-      key: "/",
-      icon: <UserOutlined />,
-      label: "nav 1",
-    },
-    {
-      key: "/user",
-      icon: <VideoCameraOutlined />,
-      label: "nav 2",
-    },
-    {
-      key: "/logi1n",
-      icon: <UploadOutlined />,
-      label: "nav 3",
-    },
-  ];
+  const pathArray = location.pathname.split("/").filter(Boolean);
+  const openKeys = pathArray.map(
+    (_, i) => "/" + pathArray.slice(0, i + 1).join("/"),
+  );
+  const [openKeysState, setOpenKeysState] = useState<string[]>(openKeys);
   return (
     <Menu
-      onClick={({ key }) => {
-        navigate(key);
-      }}
-      // theme="dark"
-      className="bg-[#F6F6F6]! border-0!"
+      onClick={({ key }) => navigate(key)}
+      className=" border-0!"
       mode="inline"
+      items={menu}
+      openKeys={openKeysState}
       selectedKeys={[location.pathname]}
-      items={menuItems}
+      onOpenChange={keys => setOpenKeysState(keys)}
     />
   );
 }

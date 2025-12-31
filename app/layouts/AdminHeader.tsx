@@ -17,7 +17,6 @@ interface AdminHeaderProps {
 export default function AdminHeader({
   collapsed,
   setCollapsed,
-  colorBgContainer,
 }: AdminHeaderProps) {
   const navigate = useNavigate();
   const fetcher = useFetcher();
@@ -39,8 +38,8 @@ export default function AdminHeader({
   ];
   return (
     <Header
-      style={{ padding: 0, background: colorBgContainer }}
-      className="flex items-center justify-between pr-20!"
+      style={{ padding: 0, background: "transparent" }}
+      className="flex items-center justify-between pr-20! border-b border-gray-200/50"
     >
       <Button
         type="text"

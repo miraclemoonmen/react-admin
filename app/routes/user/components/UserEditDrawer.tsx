@@ -10,7 +10,7 @@ import {
   Space,
 } from "antd";
 import { useRevalidator } from "react-router";
-import { create, update } from "~/services/user";
+import { update } from "~/services/user";
 import { useEffect } from "react";
 
 interface Props {
@@ -28,7 +28,7 @@ export default function UserAddDrawer({ open, onClose, initialValues }: Props) {
   }, [open, initialValues, form]);
   const revalidator = useRevalidator();
   const onFinish = async (values: any) => {
-    const { msg, code } = await update({ id: initialValues.id, ...values });
+    const { msg, code } = await update({ id: initialValues?.id, ...values });
     if (code === 0) {
       onClose();
       await revalidator.revalidate();
