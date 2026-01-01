@@ -10,6 +10,7 @@ import {
   Space,
   type TableProps,
   message,
+  Tag,
 } from "antd";
 import { useLoaderData, useNavigation, useRevalidator } from "react-router";
 import { getUsers, remove } from "~/services/user";
@@ -28,11 +29,13 @@ import { useTableQuery } from "~/routes/user/useTableQuery";
 import { guardPermission } from "~/guards/ensurePermission";
 import { getRoles } from "~/services/role";
 import RoleCars from "~/routes/user/components/RoleCards";
+import { useRoleStore } from "~/stores/useRoleStore";
 
 interface DataType {
   id: string;
   name: string;
   createTime: string;
+  roles: [];
 }
 
 interface FormValues {
@@ -40,7 +43,6 @@ interface FormValues {
   status?: number;
   createTimeRange?: [Dayjs, Dayjs];
 }
-
 
 export async function clientLoader({ request }: Route.ActionArgs) {
   await guardPermission("sys:user:list");
@@ -51,18 +53,15 @@ export async function clientLoader({ request }: Route.ActionArgs) {
     size: Number(urlParams.get("size") || 10),
     createTimeRange: urlParams.getAll("createTimeRange") || [],
     status: urlParams.get("status") || 0,
+    roles: urlParams.getAll("roles") || [],
   };
 
-  if (urlParams.get("type") === "roles") {
-    const rolesRes = await getRoles();
-    return { roles: rolesRes.data };
-  }
   const [rolesRes, usersRes] = await Promise.all([
-    getRoles(),
+    useRoleStore.getState().getAllRoles(),
     getUsers(params),
   ]);
   return {
-    roles: rolesRes.data,
+    roles: rolesRes,
     users: usersRes.data,
   };
 }
@@ -101,6 +100,17 @@ export default function User() {
       key: "phone",
     },
     {
+      title: "所属角色",
+      dataIndex: "roleName",
+      render: (_, record) => (
+        <Flex gap="small" align="center" wrap>
+          {record.roles?.map(item => (
+            <Tag key={item}>{useRoleStore.getState().rolesMap[item]}</Tag>
+          ))}
+        </Flex>
+      ),
+    },
+    /*    {
       title: "性别",
       dataIndex: "gender",
       key: "gender",
@@ -109,7 +119,7 @@ export default function User() {
       title: "头像",
       dataIndex: "avatar",
       key: "avatar",
-    },
+    },*/
     {
       title: "账号状态",
       dataIndex: "status",
@@ -177,6 +187,7 @@ export default function User() {
     setSearchParams,
   } = useTableQuery<FormValues>({
     dateFields: ["createTimeRange"],
+    arrayIds: ["roles"]
   });
 
   const { users } = useLoaderData() as any;
@@ -208,7 +219,20 @@ export default function User() {
             }}
           >
             <Form.Item name="name">
-              <Input placeholder="用户名/昵称" />
+              <Input allowClear placeholder="用户名/昵称" />
+            </Form.Item>
+            <Form.Item name="roles">
+              <Select
+                allowClear
+                placeholder="所属角色"
+                style={{ width: 220 }}
+                fieldNames={{
+                  value: "id",
+                  label: "roleName",
+                }}
+                mode="multiple"
+                options={useRoleStore.getState().allRoles}
+              />
             </Form.Item>
             <Form.Item name="createTimeRange">
               <RangePicker />

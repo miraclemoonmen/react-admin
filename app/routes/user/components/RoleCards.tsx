@@ -1,23 +1,17 @@
 import RolePermissionAddModal from "~/routes/user/components/RolePermissionAddModal";
 import RolePermissionEditModal from "~/routes/user/components/RolePermissionEditModal";
 import { Avatar, Button } from "antd";
-import { AntDesignOutlined, UserOutlined } from "@ant-design/icons";
 import illustration from "~/assets/illustration.webp";
 import { useState } from "react";
-import { useFetcher, useLoaderData } from "react-router";
-
+import { useLoaderData } from "react-router";
+const ColorList = ["#1677ff", "#52c41a", "#faad14"];
 export default function RoleCars() {
-  const fetcher = useFetcher();
   const [modalStatus, setModalStatus] = useState({
     permissionEdit: false,
     permissionAdd: false,
   });
   const [activeRole, setActiveRole] = useState(null);
-  const { roles: initialRoles } = useLoaderData();
-  const roles = fetcher.data?.roles || initialRoles;
-  const refreshRoles = () => {
-    fetcher.load("/system/user?type=role");
-  };
+  const { roles } = useLoaderData();
 
   return (
     <>
@@ -26,7 +20,6 @@ export default function RoleCars() {
           open={modalStatus.permissionAdd}
           onClose={() => {
             setModalStatus(pre => ({ ...pre, permissionAdd: false }));
-            refreshRoles();
           }}
         />
         <RolePermissionEditModal
@@ -34,7 +27,6 @@ export default function RoleCars() {
           open={modalStatus.permissionEdit}
           onClose={() => {
             setModalStatus(pre => ({ ...pre, permissionEdit: false }));
-            refreshRoles();
           }}
         />
         <h2 className="text-xl font-bold text-gray-800">角色</h2>
@@ -53,24 +45,24 @@ export default function RoleCars() {
                 <span className="text-sm font-medium text-gray-500">
                   共{item.userCount}位用户
                 </span>
-                <Avatar.Group
-                  max={{
-                    count: 3,
-                    style: { color: "#f56a00", backgroundColor: "#fde3cf" },
-                  }}
-                >
-                  <Avatar src="https://api.dicebear.com/7.x/miniavs/svg?seed=1" />
-                  <a href="https://ant.design">
-                    <Avatar style={{ backgroundColor: "#f56a00" }}>K</Avatar>
-                  </a>
-                  <Avatar
-                    style={{ backgroundColor: "#87d068" }}
-                    icon={<UserOutlined />}
-                  />
-                  <Avatar
-                    style={{ backgroundColor: "#1677ff" }}
-                    icon={<AntDesignOutlined />}
-                  />
+                <Avatar.Group>
+                  {item.usernames.map((v, i) => (
+                    <Avatar
+                      style={{
+                        backgroundColor: ColorList[i],
+                      }}
+                      key={v}
+                    >
+                      {v}
+                    </Avatar>
+                  ))}
+                  {item.userCount > item.usernames.length && (
+                    <Avatar
+                      style={{ color: "#f56a00", backgroundColor: "#fde3cf" }}
+                    >
+                      +{item.userCount - 3}
+                    </Avatar>
+                  )}
                 </Avatar.Group>
               </div>
               <div className="text-xl font-bold mb-2">{item.roleName}</div>

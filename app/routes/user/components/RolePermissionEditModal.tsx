@@ -5,6 +5,8 @@ import {
   updatePermission,
 } from "~/services/role";
 import { useEffect, useState } from "react";
+import { useRoleStore } from "~/stores/useRoleStore";
+import { useFetcher, useRevalidator } from "react-router";
 
 interface Props {
   open: boolean;
@@ -30,6 +32,7 @@ export default function RolePermissionEditModal({
   );
   const [selectedKeys, setSelectedKeys] = useState<number[]>([]);
   const [roleName, setRoleName] = useState("");
+  const revalidator = useRevalidator();
   useEffect(() => {
     if (open) {
       Promise.all([getPermissionTemplate(), getPermission(roleData.id)]).then(
@@ -51,6 +54,8 @@ export default function RolePermissionEditModal({
     message[code === 0 ? "success" : "error"](msg);
     if (code === 0) {
       onClose();
+      useRoleStore.getState().reset();
+      await revalidator.revalidate();
     }
   };
 

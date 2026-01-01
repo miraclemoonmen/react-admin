@@ -6,19 +6,20 @@ import { useMemo } from "react";
 
 interface QueryConfig {
   dateFields?: string[]; // 哪些字段是时间范围类型
+  arrayIds?: string[]; // 哪些字段是时间范围类型
 }
 
 export function useTableQuery<T extends object>(config: QueryConfig = {}) {
   const [searchParams, setSearchParams] = useSearchParams();
   const [form] = Form.useForm();
-  const { dateFields = [] } = config;
+  const { dateFields = [], arrayIds = [] } = config;
 
   // 1. 动态初始化回显
   const formInitialValues = useMemo(() => {
     const values: any = {};
     // 基础字段处理
     searchParams.forEach((value, key) => {
-      if (!dateFields.includes(key)) {
+      if (!dateFields.includes(key) || !arrayIds.includes(key)) {
         values[key] = value;
       }
     });
@@ -29,8 +30,15 @@ export function useTableQuery<T extends object>(config: QueryConfig = {}) {
         values[field] = [dayjs(dates[0]), dayjs(dates[1])];
       }
     });
+    arrayIds.forEach(field => {
+      if (typeof values[field] === "string" && values[field].length > 0) {
+        values[field] = values[field].split(",").map(Number);
+      } else {
+        values[field] = [];
+      }
+    });
     return values as T;
-  }, [searchParams, dateFields]);
+  }, [searchParams, dateFields, arrayIds]);
 
   // 2. 动态提交逻辑
   const { run: handleSearch } = useDebounceFn(
@@ -49,8 +57,10 @@ export function useTableQuery<T extends object>(config: QueryConfig = {}) {
           // 处理时间范围
           params.append(key, val[0].format("YYYY-MM-DD HH:mm:ss"));
           params.append(key, val[1].endOf("d").format("YYYY-MM-DD HH:mm:ss"));
+        } else if (Array.isArray(val)) {
+          params.delete(key);
+          val.forEach(i => params.append(key, String(i)));
         } else {
-          // 处理普通字段
           params.set(key, String(val));
         }
       });

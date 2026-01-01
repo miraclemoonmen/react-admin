@@ -7,10 +7,12 @@ import {
   message,
   Radio,
   Row,
+  Select,
   Space,
 } from "antd";
 import { useRevalidator } from "react-router";
 import { create } from "~/services/user";
+import { useRoleStore } from "~/stores/useRoleStore";
 
 interface Props {
   open: boolean;
@@ -25,6 +27,7 @@ export default function UserAddDrawer({ open, onClose }: Props) {
     if (code === 0) {
       onClose();
       form.resetFields();
+      useRoleStore.getState().reset();
       await revalidator.revalidate();
     }
     message[code === 0 ? "success" : "error"](msg);
@@ -111,6 +114,16 @@ export default function UserAddDrawer({ open, onClose }: Props) {
           rules={[{ type: "email", message: "请输入有效的邮箱地址" }]}
         >
           <Input placeholder="example@mail.com" />
+        </Form.Item>
+        <Form.Item label="用户角色" name="roles">
+          <Select
+            fieldNames={{
+              value: "id",
+              label: "roleName",
+            }}
+            mode="multiple"
+            options={useRoleStore.getState().allRoles}
+          />
         </Form.Item>
       </Form>
     </Drawer>

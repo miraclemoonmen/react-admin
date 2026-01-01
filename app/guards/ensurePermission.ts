@@ -1,4 +1,4 @@
-import { useAuthStore } from "~/stores/authStore";
+import { useAuthStore } from "~/stores/useAuthStore";
 
 export async function guardPermission(permission: string) {
   const hasAuth = await useAuthStore.getState().checkPermission(permission);

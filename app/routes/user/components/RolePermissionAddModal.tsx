@@ -1,6 +1,8 @@
 import { Button, Checkbox, Input, message, Modal } from "antd";
 import { getPermissionTemplate, addRole } from "~/services/role";
 import { useEffect, useState } from "react";
+import { useRoleStore } from "~/stores/useRoleStore";
+import { useRevalidator } from "react-router";
 
 interface Props {
   open: boolean;
@@ -21,6 +23,7 @@ export default function RolePermissionEditModal({ open, onClose }: Props) {
   );
   const [selectedKeys, setSelectedKeys] = useState<number[]>([]);
   const [roleName, setRoleName] = useState("");
+  const revalidator = useRevalidator();
 
   useEffect(() => {
     if (open) {
@@ -38,6 +41,8 @@ export default function RolePermissionEditModal({ open, onClose }: Props) {
     message[code === 0 ? "success" : "error"](msg);
     if (code === 0) {
       onClose();
+      useRoleStore.getState().reset();
+      await revalidator.revalidate();
     }
   };
 
