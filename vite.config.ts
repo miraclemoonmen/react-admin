@@ -8,11 +8,7 @@ export default defineConfig({
   plugins: [devtoolsJson(), tailwindcss(), reactRouter(), tsconfigPaths()],
   server: {
     proxy: {
-      // "/his-api": {
-      //   target: "http://localhost:3000",
-      //   changeOrigin: true,
-      // },
-      "/win-ride": {
+      "/api": {
         target: "http://localhost:8080",
         changeOrigin: true,
       },

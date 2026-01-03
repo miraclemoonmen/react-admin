@@ -1,10 +1,10 @@
 import { create } from "zustand";
-import { getCurrentUser } from "~/services/user";
+import { getCurrentUser, logout } from "~/services/user";
 
 interface AuthState {
   roles: string[];
   userId: string | null;
-  clearAuth: () => void;
+  logout: () => Promise<any>;
   checkPermission: (role: string) => Promise<boolean>;
 }
 
@@ -21,5 +21,8 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
     }
     return get().roles.includes(role);
   },
-  clearAuth: () => set({ roles: [], userId: null }),
+  logout: async () => {
+    set({ roles: [], userId: null });
+    return await logout();
+  },
 }));

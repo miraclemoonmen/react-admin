@@ -55,8 +55,8 @@ export function useTableQuery<T extends object>(config: QueryConfig = {}) {
           val.length === 2
         ) {
           // 处理时间范围
-          params.append(key, val[0].format("YYYY-MM-DD HH:mm:ss"));
-          params.append(key, val[1].endOf("d").format("YYYY-MM-DD HH:mm:ss"));
+          params.append(key, val[0].format("yyyy-MM-ddTHH:mm:ss"));
+          params.append(key, val[1].endOf("d").format("yyyy-MM-ddTHH:mm:ss"));
         } else if (Array.isArray(val)) {
           params.delete(key);
           val.forEach(i => params.append(key, String(i)));
@@ -66,6 +66,7 @@ export function useTableQuery<T extends object>(config: QueryConfig = {}) {
       });
 
       params.set("page", "1");
+      console.log(Object.fromEntries(params));
       setSearchParams(params, { replace: true });
     },
     { wait: 300 },
@@ -79,6 +80,13 @@ export function useTableQuery<T extends object>(config: QueryConfig = {}) {
       }, {} as any),
     );
     setSearchParams({}, { replace: true });
+  }
+
+  const onPageChange = (page: number, size: number) => {
+    const params = new URLSearchParams(searchParams);
+    params.set("page", String(page));
+    params.set("size", String(size));
+    setSearchParams(params, { preventScrollReset: true });
   };
 
   return {
@@ -88,5 +96,6 @@ export function useTableQuery<T extends object>(config: QueryConfig = {}) {
     handleReset,
     searchParams,
     setSearchParams,
+    onPageChange,
   };
 }

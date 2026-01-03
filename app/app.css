@@ -18,3 +18,15 @@ body {
 .ant-pagination {
   @apply mb-0!;
 }
+
+.ant-upload-drag {
+  @apply bg-[#FAFAFA]! rounded-2xl! transition-all! duration-300!;
+}
+
+.ant-upload-list {
+  @apply mt-2!;
+}
+
+.ant-upload-list-item {
+  @apply shadow-sm transition-all! duration-300!
+}

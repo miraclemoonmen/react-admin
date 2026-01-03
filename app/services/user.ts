@@ -7,6 +7,12 @@ export function login(data: any) {
   });
 }
 
+export function logout() {
+  return request("/logout", {
+    method: "POST"
+  });
+}
+
 export async function getCurrentUser() {
   return request(`/auth/getInfo`, {
     method: "GET",

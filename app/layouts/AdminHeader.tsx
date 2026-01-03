@@ -1,12 +1,14 @@
-import { Avatar, Button, Dropdown } from "antd";
+import { Avatar, Button, Dropdown, type MenuProps } from "antd";
 import {
+  LogoutOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
+  SettingOutlined,
   UserOutlined,
 } from "@ant-design/icons";
 import { Layout } from "antd";
+import { useAuthStore } from "~/stores/useAuthStore";
 const { Header } = Layout;
-import { useFetcher, useNavigate } from "react-router";
 
 interface AdminHeaderProps {
   collapsed: boolean;
@@ -18,22 +20,31 @@ export default function AdminHeader({
   collapsed,
   setCollapsed,
 }: AdminHeaderProps) {
-  const navigate = useNavigate();
-  const fetcher = useFetcher();
-  const menuItems = [
+  const onClick: MenuProps["onClick"] = ({ key }) => {
+    switch (key) {
+      case "3":
+        useAuthStore.getState().logout();
+        window.location.replace("/login");
+    }
+  };
+  const menuItems: MenuProps["items"] = [
     {
-      key: "profile",
-      label: "个人中心",
-      onClick: () => {
-        navigate("/profile");
-      },
+      key: "1",
+      label: "Profile",
     },
     {
-      key: "logout",
+      key: "2",
+      label: "Settings",
+      icon: <SettingOutlined />,
+    },
+    {
+      type: "divider",
+    },
+    {
+      key: "3",
       label: "退出登录",
-      onClick: () => {
-        fetcher.submit(null, { method: "post", action: "/logout" });
-      },
+      icon: <LogoutOutlined />,
+      danger: true,
     },
   ];
   return (
@@ -52,7 +63,7 @@ export default function AdminHeader({
         }}
       />
       <div>
-        <Dropdown placement="bottomRight" menu={{ items: menuItems }}>
+        <Dropdown placement="bottomRight" menu={{ items: menuItems, onClick }}>
           <Avatar icon={<UserOutlined />} />
         </Dropdown>
       </div>

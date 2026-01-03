@@ -10,7 +10,7 @@ export default function Index() {
       <main className="relative max-w-7xl mx-auto px-12 pt-[28vh]">
         {/* 主标题：苹果风格的平滑升起动画 */}
         <div className="animate-[slideUp_1.5s_cubic-bezier(0.16,1,0.3,1)_forwards] opacity-0">
-          <h1 className="text-[110px] font-black tracking-[-0.05em] leading-[0.9] text-[#1A1D2E]">
+          <h1 className="text-[110px] font-black  text-[#1A1D2E]">
             神说，要有光。
             <span className="inline-block animate-[bounce_4s_ease-in-out_infinite]">
               ☀️
@@ -20,7 +20,7 @@ export default function Index() {
 
         <div className="flex items-center gap-6 mt-12 animate-[fadeIn_1.2s_ease-out_1s_forwards] opacity-0">
           <div className="h-px w-20 bg-[#1A1D2E]/20" />
-          <p className="text-2xl text-[#9095A9] font-medium tracking-tight italic">
+          <p className="text-2xl text-[#9095A9] italic">
             于是，代码开始流转，万物有了秩序。
           </p>
         </div>

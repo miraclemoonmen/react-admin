@@ -14,22 +14,22 @@ import {
 } from "antd";
 import { useLoaderData, useNavigation, useRevalidator } from "react-router";
 import { getUsers, remove } from "~/services/user";
-import type { Route } from "../../../.react-router/types/app/routes/user/+types";
+// import type { Route } from "../../../../.react-router/types/app/routes/user/+types";
 import { useState } from "react";
 const { RangePicker } = DatePicker;
 import { Dayjs } from "dayjs";
-import UserAddDrawer from "~/routes/user/components/UserAddDrawer";
-import UserEditDrawer from "~/routes/user/components/UserEditDrawer";
+import UserAddDrawer from "~/routes/system/user/components/UserAddDrawer";
+import UserEditDrawer from "~/routes/system/user/components/UserEditDrawer";
 import {
   DeleteTwoTone,
   EditOutlined,
   ExclamationCircleFilled,
 } from "@ant-design/icons";
-import { useTableQuery } from "~/routes/user/useTableQuery";
+import { useTableQuery } from "~/hooks/useTableQuery";
 import { guardPermission } from "~/guards/ensurePermission";
-import { getRoles } from "~/services/role";
-import RoleCars from "~/routes/user/components/RoleCards";
+import RoleCars from "~/routes/system/user/components/RoleCards";
 import { useRoleStore } from "~/stores/useRoleStore";
+import type { Route } from "~/../.react-router/types/app/routes/+types";
 
 interface DataType {
   id: string;
@@ -187,7 +187,7 @@ export default function User() {
     setSearchParams,
   } = useTableQuery<FormValues>({
     dateFields: ["createTimeRange"],
-    arrayIds: ["roles"]
+    arrayIds: ["roles"],
   });
 
   const { users } = useLoaderData() as any;
@@ -205,10 +205,10 @@ export default function User() {
       <div className="mb-6 mt-6">
         <h2 className="text-xl font-bold text-gray-800">用户</h2>
         <p className="text-sm text-gray-400 mt-1.5 leading-relaxed max-w-3xl">
-          所有用户的账号信息，以及他们当前所属的角色权限。
+          管理成员档案及其在项目中的身份。
         </p>
       </div>
-      <section className="mt-5 bg-white p-5 rounded-3xl shadow-sm border border-gray-50">
+      <section className="bg-white p-5 rounded-3xl shadow-sm border border-gray-50">
         <header className="flex justify-between mb-4">
           <Form
             form={form}
@@ -224,6 +224,7 @@ export default function User() {
             <Form.Item name="roles">
               <Select
                 allowClear
+                maxTagCount={1}
                 placeholder="所属角色"
                 style={{ width: 220 }}
                 fieldNames={{

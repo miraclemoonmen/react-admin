@@ -9,7 +9,7 @@ export interface FetchOptions extends RequestInit {
   method?: Method; // 请求方法，默认 GET
 }
 
-export const DEFAULT_BASE_URL = "/win-ride";
+export const DEFAULT_BASE_URL = "/api";
 
 export async function request<T = any>(
   url: string,

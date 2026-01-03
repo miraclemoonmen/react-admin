@@ -1,5 +1,5 @@
-import RolePermissionAddModal from "~/routes/user/components/RolePermissionAddModal";
-import RolePermissionEditModal from "~/routes/user/components/RolePermissionEditModal";
+import RolePermissionAddModal from "~/routes/system/user/components/RolePermissionAddModal";
+import RolePermissionEditModal from "~/routes/system/user/components/RolePermissionEditModal";
 import { Avatar, Button } from "antd";
 import illustration from "~/assets/illustration.webp";
 import { useState } from "react";
@@ -31,17 +31,17 @@ export default function RoleCars() {
         />
         <h2 className="text-xl font-bold text-gray-800">角色</h2>
         <p className="text-sm text-gray-400 mt-1.5 leading-relaxed max-w-3xl">
-          角色决定了用户可访问的菜单和功能。通过为用户分配特定角色，确保其仅能使用与其相关的资源。
+          界定成员的访问权限与操作边界。
         </p>
       </div>
       <div className="col-span-8 space-y-6">
-        <div className="grid grid-cols-4 gap-4">
+        <div className="grid grid-cols-4 gap-4 min-h-36.75">
           {roles.map(item => (
             <div
               key={item.id}
               className="bg-white p-5 rounded-3xl shadow-sm border border-gray-50"
             >
-              <div className="flex justify-between items-start mb-4">
+              <div className="flex justify-between items-start mb-4 h-8">
                 <span className="text-sm font-medium text-gray-500">
                   共{item.userCount}位用户
                 </span>
