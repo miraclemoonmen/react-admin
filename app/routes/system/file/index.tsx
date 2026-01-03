@@ -29,13 +29,13 @@ import {
 } from "antd";
 import { motion, AnimatePresence } from "framer-motion";
 import useUpload from "~/hooks/useUpload";
-import type { Route } from "../../../../.react-router/types/app/routes/+types";
 import { guardPermission } from "~/guards/ensurePermission";
 import { useTableQuery } from "~/hooks/useTableQuery";
 import { Dayjs } from "dayjs";
 import { useLoaderData, useNavigation, useRevalidator } from "react-router";
 import { getFiles } from "~/services/file";
 import { remove } from "~/services/file";
+import type { Route } from "./+types";
 const { Dragger } = Upload;
 const { RangePicker } = DatePicker;
 

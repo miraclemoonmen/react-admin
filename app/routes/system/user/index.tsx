@@ -29,7 +29,7 @@ import { useTableQuery } from "~/hooks/useTableQuery";
 import { guardPermission } from "~/guards/ensurePermission";
 import RoleCars from "~/routes/system/user/components/RoleCards";
 import { useRoleStore } from "~/stores/useRoleStore";
-import type { Route } from "~/../.react-router/types/app/routes/+types";
+import type { Route } from "./+types";
 
 interface DataType {
   id: string;

@@ -8,7 +8,7 @@ import {
 } from "react-router";
 import type { Route } from "./+types/root";
 import { ConfigProvider } from "antd";
-import { ErrorPage } from "~/routes/ErrorPage";
+import { ErrorPage } from "~/routes/error-page";
 import "./app.css";
 import zhCN from "antd/locale/zh_CN";
 import "dayjs/locale/zh-cn";
@@ -27,7 +27,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Links />
       </head>
       <body>
-        <ConfigProvider variant={"filled"} locale={zhCN}>
+        <ConfigProvider variant={"filled"} locale={zhCN} >
           {children}
         </ConfigProvider>
         <ScrollRestoration />

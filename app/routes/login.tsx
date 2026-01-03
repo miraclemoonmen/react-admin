@@ -1,4 +1,3 @@
-import type { Route } from "../../.react-router/types/app/routes/+types";
 import { Button, Checkbox, Form, Input, message } from "antd";
 import {
   redirect,
@@ -10,6 +9,7 @@ import {
 import { login } from "~/services/user";
 import { useEffect } from "react";
 import loginBg from "~/assets/login-bg.webp";
+import type { Route } from "./+types";
 
 type FieldType = {
   username?: string;
