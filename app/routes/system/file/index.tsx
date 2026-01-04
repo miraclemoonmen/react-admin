@@ -52,15 +52,8 @@ interface FormValues {
 
 export async function clientLoader({ request }: Route.ActionArgs) {
   await guardPermission("sys:user:list");
-  const urlParams = new URL(request.url).searchParams;
-  const params = {
-    keyword: urlParams.get("keyword") || "",
-    page: Number(urlParams.get("page") || 1),
-    size: Number(urlParams.get("size") || 10),
-    createTimeRange: urlParams.getAll("createTimeRange") || []
-  };
-
-  return await getFiles(params);
+  const url = new URL(request.url);
+  return await getFiles(url.search);
 }
 
 export default function Index() {
@@ -74,7 +67,6 @@ export default function Index() {
     showUploadList: false,
     fileList,
     beforeUpload: file => {
-      console.log(file, 1);
       file["localUrl"] = URL.createObjectURL(file);
       return true;
     },
@@ -163,8 +155,7 @@ export default function Index() {
   ];
   const { form, formInitialValues, handleSearch, handleReset, onPageChange } =
     useTableQuery<FormValues>({
-      dateFields: ["createTimeRange"],
-      arrayIds: ["roles"],
+      dateFields: ["createTimeRange"]
     });
 
   return (

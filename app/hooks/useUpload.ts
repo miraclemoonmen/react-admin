@@ -23,16 +23,17 @@ export default function useUpload() {
       xhr.onload = async () => {
         if (xhr.status >= 200 && xhr.status < 300) {
           await complete(data.fileUuid);
-          await revalidator.revalidate();
           onSuccess(data.fileUuid);
         } else {
           onError(new Error("上传失败"));
         }
+        await revalidator.revalidate();
       };
       xhr.setRequestHeader("Content-Type", file.type);
       xhr.send(file);
     } else {
       onError();
+      await revalidator.revalidate();
     }
   }
   return {

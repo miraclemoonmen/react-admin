@@ -14,7 +14,6 @@ import {
 } from "antd";
 import { useLoaderData, useNavigation, useRevalidator } from "react-router";
 import { getUsers, remove } from "~/services/user";
-// import type { Route } from "../../../../.react-router/types/app/routes/user/+types";
 import { useState } from "react";
 const { RangePicker } = DatePicker;
 import { Dayjs } from "dayjs";
@@ -46,19 +45,11 @@ interface FormValues {
 
 export async function clientLoader({ request }: Route.ActionArgs) {
   await guardPermission("sys:user:list");
-  const urlParams = new URL(request.url).searchParams;
-  const params = {
-    keyword: urlParams.get("name") || "",
-    page: Number(urlParams.get("page") || 1),
-    size: Number(urlParams.get("size") || 10),
-    createTimeRange: urlParams.getAll("createTimeRange") || [],
-    status: urlParams.get("status") || 0,
-    roles: urlParams.getAll("roles") || [],
-  };
+  const url = new URL(request.url);
 
   const [rolesRes, usersRes] = await Promise.all([
     useRoleStore.getState().getAllRoles(),
-    getUsers(params),
+    getUsers(url.search),
   ]);
   return {
     roles: rolesRes,
@@ -178,26 +169,13 @@ export default function User() {
     },
   ];
   const navigation = useNavigation();
-  const {
-    form,
-    formInitialValues,
-    handleSearch,
-    handleReset,
-    searchParams,
-    setSearchParams,
-  } = useTableQuery<FormValues>({
-    dateFields: ["createTimeRange"],
-    arrayIds: ["roles"],
-  });
+  const { form, formInitialValues, handleSearch, handleReset, onPageChange } =
+    useTableQuery<FormValues>({
+      dateFields: ["createTimeRange"],
+      numberFields: ["roles"],
+    });
 
   const { users } = useLoaderData() as any;
-
-  const onPageChange = (page: number, size: number) => {
-    const params = new URLSearchParams(searchParams);
-    params.set("page", String(page));
-    params.set("size", String(size));
-    setSearchParams(params, { preventScrollReset: true });
-  };
 
   return (
     <>
@@ -224,9 +202,9 @@ export default function User() {
             <Form.Item name="roles">
               <Select
                 allowClear
-                maxTagCount={1}
+                maxTagCount={2}
                 placeholder="所属角色"
-                style={{ width: 220 }}
+                style={{ width: 280 }}
                 fieldNames={{
                   value: "id",
                   label: "roleName",
@@ -291,9 +269,7 @@ export default function User() {
             showSizeChanger: true,
             pageSizeOptions: ["5", "10", "20"],
             showQuickJumper: true, // 快速跳转页码
-            onChange: (p, ps) => {
-              onPageChange(p, ps);
-            },
+            onChange: (p, ps) => onPageChange(p, ps),
           }}
         />
       </section>

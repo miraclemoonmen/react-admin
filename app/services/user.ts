@@ -9,7 +9,7 @@ export function login(data: any) {
 
 export function logout() {
   return request("/logout", {
-    method: "POST"
+    method: "POST",
   });
 }
 
@@ -22,7 +22,7 @@ export async function getCurrentUser() {
 export async function getUsers(params: any) {
   return request(`/users`, {
     method: "GET",
-    data: params,
+    params,
   });
 }
 

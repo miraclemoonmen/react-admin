@@ -1,9 +1,9 @@
 import { request } from "~/services/request";
 
-export async function getFiles(data): Promise<any> {
-  return request("/file/list", {
+export async function getFiles(params): Promise<any> {
+  return request(`/file/list`, {
     method: "GET",
-    data,
+    params,
   });
 }
 
