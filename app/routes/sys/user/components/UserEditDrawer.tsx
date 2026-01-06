@@ -44,7 +44,7 @@ export default function UserAddDrawer({ open, onClose, initialValues }: Props) {
     <Drawer
       mask={{ blur: false }}
       title="编辑用户"
-      closable={{ "aria-label": "Close Button" }}
+      closable={false}
       open={open}
       onClose={onClose}
       extra={
@@ -112,7 +112,7 @@ export default function UserAddDrawer({ open, onClose, initialValues }: Props) {
         >
           <Input placeholder="example@mail.com" />
         </Form.Item>
-        <Form.Item label="用户角色" name="roles">
+        <Form.Item label="所属角色" name="roles">
           <Select
             fieldNames={{
               value: "id",

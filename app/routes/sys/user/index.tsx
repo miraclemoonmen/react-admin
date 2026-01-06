@@ -17,16 +17,15 @@ import { getUsers, remove } from "~/services/user";
 import { useState } from "react";
 const { RangePicker } = DatePicker;
 import { Dayjs } from "dayjs";
-import UserAddDrawer from "~/routes/system/user/components/UserAddDrawer";
-import UserEditDrawer from "~/routes/system/user/components/UserEditDrawer";
+import UserAddDrawer from "~/routes/sys/user/components/UserAddDrawer";
+import UserEditDrawer from "~/routes/sys/user/components/UserEditDrawer";
 import {
   DeleteTwoTone,
   EditOutlined,
   ExclamationCircleFilled,
 } from "@ant-design/icons";
 import { useTableQuery } from "~/hooks/useTableQuery";
-import { guardPermission } from "~/guards/ensurePermission";
-import RoleCars from "~/routes/system/user/components/RoleCards";
+import RoleCars from "~/routes/sys/user/components/RoleCards";
 import { useRoleStore } from "~/stores/useRoleStore";
 import type { Route } from "./+types";
 
@@ -44,7 +43,6 @@ interface FormValues {
 }
 
 export async function clientLoader({ request }: Route.ActionArgs) {
-  await guardPermission("sys:user:list");
   const url = new URL(request.url);
 
   const [rolesRes, usersRes] = await Promise.all([
@@ -68,27 +66,22 @@ export default function User() {
     {
       title: "ID",
       dataIndex: "id",
-      key: "id",
     },
     {
       title: "用户名",
       dataIndex: "username",
-      key: "username",
     },
     {
       title: "昵称",
       dataIndex: "nickname",
-      key: "nickname",
     },
     {
       title: "邮箱",
       dataIndex: "email",
-      key: "email",
     },
     {
       title: "手机号",
       dataIndex: "phone",
-      key: "phone",
     },
     {
       title: "所属角色",
@@ -114,17 +107,14 @@ export default function User() {
     {
       title: "账号状态",
       dataIndex: "status",
-      key: "status",
     },
     {
       title: "最后登录IP",
       dataIndex: "lastLoginIp",
-      key: "lastLoginIp",
     },
     {
       title: "创建时间",
-      dataIndex: "createTime",
-      key: "createTime",
+      dataIndex: "createdAt",
     },
     {
       title: "操作",
@@ -171,7 +161,7 @@ export default function User() {
   const navigation = useNavigation();
   const { form, formInitialValues, handleSearch, handleReset, onPageChange } =
     useTableQuery<FormValues>({
-      dateFields: ["createTimeRange"],
+      dateFields: ["createdAtRange"],
       numberFields: ["roles"],
     });
 
@@ -196,15 +186,15 @@ export default function User() {
               handleSearch(allValues);
             }}
           >
-            <Form.Item name="name">
+            <Form.Item name="keyword">
               <Input allowClear placeholder="用户名/昵称" />
             </Form.Item>
             <Form.Item name="roles">
               <Select
                 allowClear
-                maxTagCount={2}
+                maxTagCount={1}
                 placeholder="所属角色"
-                style={{ width: 280 }}
+                style={{ width: 200 }}
                 fieldNames={{
                   value: "id",
                   label: "roleName",
@@ -213,7 +203,7 @@ export default function User() {
                 options={useRoleStore.getState().allRoles}
               />
             </Form.Item>
-            <Form.Item name="createTimeRange">
+            <Form.Item name="createdAtRange">
               <RangePicker />
             </Form.Item>
             <Form.Item name="status">
@@ -267,7 +257,7 @@ export default function User() {
             pageSize: users.size,
             total: users.total,
             showSizeChanger: true,
-            pageSizeOptions: ["5", "10", "20"],
+            pageSizeOptions: ["10", "20"],
             showQuickJumper: true, // 快速跳转页码
             onChange: (p, ps) => onPageChange(p, ps),
           }}

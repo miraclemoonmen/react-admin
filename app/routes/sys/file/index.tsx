@@ -11,6 +11,7 @@ import {
   LoadingOutlined,
 } from "@ant-design/icons";
 import {
+  Badge,
   Button,
   DatePicker,
   Flex,
@@ -29,7 +30,6 @@ import {
 } from "antd";
 import { motion, AnimatePresence } from "framer-motion";
 import useUpload from "~/hooks/useUpload";
-import { guardPermission } from "~/guards/ensurePermission";
 import { useTableQuery } from "~/hooks/useTableQuery";
 import { Dayjs } from "dayjs";
 import { useLoaderData, useNavigation, useRevalidator } from "react-router";
@@ -51,7 +51,6 @@ interface FormValues {
 }
 
 export async function clientLoader({ request }: Route.ActionArgs) {
-  await guardPermission("sys:user:list");
   const url = new URL(request.url);
   return await getFiles(url.search);
 }
@@ -81,9 +80,8 @@ export default function Index() {
   };
   const columns: TableProps["columns"] = [
     {
-      title: "文件名称",
+      title: "名称",
       dataIndex: "fileName",
-      key: "fileName",
     },
     {
       title: "大小",
@@ -96,16 +94,15 @@ export default function Index() {
       title: "上传状态",
       dataIndex: "status",
       render: (_, record) =>
-        record.status === -1 ? (
-          <Tag color="error">上传失败</Tag>
+        record.status === 0 ? (
+          <Badge status="success" text="完成" />
         ) : (
-          <Tag color="success">完成</Tag>
+          <Badge status="error" text="失败" />
         ),
     },
     {
-      title: "上传时间",
-      dataIndex: "createTime",
-      key: "createTime",
+      title: "时间",
+      dataIndex: "createdAt",
     },
     {
       title: "操作",
@@ -113,7 +110,7 @@ export default function Index() {
       render: (_, record) => (
         <Space size="small">
           <Button
-            href={`/api/file/view/${record.fileUuid}`}
+            href={`/api/files/view/${record.fileUuid}`}
             target="_blank"
             size="small"
             type="text"
@@ -121,7 +118,7 @@ export default function Index() {
           />
           <Button
             size="small"
-            href={`/api/file/download/${record.fileUuid}`}
+            href={`/api/files/download/${record.fileUuid}`}
             type="text"
             icon={<DownloadOutlined />}
           />
@@ -155,7 +152,7 @@ export default function Index() {
   ];
   const { form, formInitialValues, handleSearch, handleReset, onPageChange } =
     useTableQuery<FormValues>({
-      dateFields: ["createTimeRange"]
+      dateFields: ["createdAtRange"],
     });
 
   return (
@@ -238,7 +235,7 @@ export default function Index() {
                       />
                     )}
                     {isError && (
-                      <Tooltip title="上传失败">
+                      <Tooltip title="失败">
                         <InfoCircleOutlined className="text-xl" />
                       </Tooltip>
                     )}
@@ -284,9 +281,9 @@ export default function Index() {
             }}
           >
             <Form.Item name="keyword">
-              <Input allowClear placeholder="文件名称" />
+              <Input allowClear placeholder="名称" />
             </Form.Item>
-            <Form.Item name="createTimeRange">
+            <Form.Item name="createdAtRange">
               <RangePicker />
             </Form.Item>
           </Form>
@@ -308,7 +305,7 @@ export default function Index() {
             pageSize: data.size,
             total: data.total,
             showSizeChanger: true,
-            pageSizeOptions: ["5", "10", "20"],
+            pageSizeOptions: ["10", "20"],
             showQuickJumper: true, // 快速跳转页码
             onChange: (p, ps) => onPageChange(p, ps),
           }}

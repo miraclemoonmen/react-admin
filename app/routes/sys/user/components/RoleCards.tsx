@@ -1,5 +1,5 @@
-import RolePermissionAddModal from "~/routes/system/user/components/RolePermissionAddModal";
-import RolePermissionEditModal from "~/routes/system/user/components/RolePermissionEditModal";
+import RolePermissionAddModal from "~/routes/sys/user/components/RolePermissionAddModal";
+import RolePermissionEditModal from "~/routes/sys/user/components/RolePermissionEditModal";
 import { Avatar, Button } from "antd";
 import illustration from "~/assets/illustration.webp";
 import { useState } from "react";
@@ -23,7 +23,7 @@ export default function RoleCars() {
           }}
         />
         <RolePermissionEditModal
-          roleData={activeRole}
+          data={activeRole}
           open={modalStatus.permissionEdit}
           onClose={() => {
             setModalStatus(pre => ({ ...pre, permissionEdit: false }));

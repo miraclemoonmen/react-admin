@@ -25,7 +25,7 @@ export default function useUpload() {
           await complete(data.fileUuid);
           onSuccess(data.fileUuid);
         } else {
-          onError(new Error("上传失败"));
+          onError(new Error("失败"));
         }
         await revalidator.revalidate();
       };

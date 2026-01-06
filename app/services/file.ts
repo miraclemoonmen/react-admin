@@ -1,39 +1,27 @@
 import { request } from "~/services/request";
 
 export async function getFiles(params): Promise<any> {
-  return request(`/file/list`, {
+  return request(`/files`, {
     method: "GET",
     params,
   });
 }
 
 export async function getPresignedUrl(data): Promise<any> {
-  return request("/file/upload", {
+  return request("/files", {
     method: "POST",
     data,
   });
 }
 
 export async function complete(fileUuid): Promise<any> {
-  return request(`/file/complete/${fileUuid}`, {
+  return request(`/files/complete/${fileUuid}`, {
     method: "POST",
   });
 }
 
-export async function getPreviewUrl(fileUuid): Promise<any> {
-  return request(`/file/view/${fileUuid}`, {
-    method: "GET",
-  });
-}
-
-export async function getDownloadUrl(fileUuid): Promise<any> {
-  return request(`/file/download/${fileUuid}`, {
-    method: "GET",
-  });
-}
-
 export async function remove(fileUuid: string): Promise<any> {
-  return request(`/file/${fileUuid}`, {
+  return request(`/files/${fileUuid}`, {
     method: "DELETE",
   });
 }

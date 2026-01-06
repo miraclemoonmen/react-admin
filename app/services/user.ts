@@ -13,12 +13,6 @@ export function logout() {
   });
 }
 
-export async function getCurrentUser() {
-  return request(`/auth/getInfo`, {
-    method: "GET",
-  });
-}
-
 export async function getUsers(params: any) {
   return request(`/users`, {
     method: "GET",

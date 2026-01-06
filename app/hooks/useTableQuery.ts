@@ -72,7 +72,14 @@ export function useTableQuery<T extends object>(config: QueryConfig = {}) {
   };
 
   const onPageChange = (page: number, size: number) => {
-    setSearchParams(p => ({ ...p, page, size }), { preventScrollReset: true });
+    setSearchParams(
+      prev => {
+        prev.set("page", page.toString());
+        prev.set("size", size.toString());
+        return prev;
+      },
+      { preventScrollReset: true },
+    );
   };
 
   return {

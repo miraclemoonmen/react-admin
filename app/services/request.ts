@@ -45,10 +45,12 @@ export async function request<T = any>(
     body,
     ...rest,
   });
-
   if (!res.ok) {
     if (res.status === 401) {
       throw redirect("/login");
+    }
+    if (res.status === 403) {
+      throw new Response("抱歉，你无权访问该页面", { status: 403 });
     }
     throw new Response("抱歉，服务器出错了", { status: 500 });
   }
