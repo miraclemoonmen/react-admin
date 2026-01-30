@@ -40,14 +40,14 @@ export function useTableQuery<T extends object>(config: QueryConfig = {}) {
   }, [searchParams, dateFields, numberFields]);
 
   const { run: handleSearch } = useDebounceFn(
-    (values: any) => {
+    values => {
       const formattedValues = { ...values };
       dateFields.forEach(key => {
         const val = values[key];
         if (Array.isArray(val) && val.length === 2) {
           formattedValues[key] = [
-            val[0].format("YYYY-MM-DDTHH:mm:ss"),
-            val[1].endOf("d").format("YYYY-MM-DDTHH:mm:ss"),
+            val[0].toISOString(),
+            val[1].endOf("d").toISOString(),
           ];
         }
       });

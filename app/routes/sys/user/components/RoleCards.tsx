@@ -1,9 +1,12 @@
 import RolePermissionAddModal from "~/routes/sys/user/components/RolePermissionAddModal";
 import RolePermissionEditModal from "~/routes/sys/user/components/RolePermissionEditModal";
-import { Avatar, Button } from "antd";
+import { Avatar, Button, message, Popconfirm } from "antd";
 import illustration from "~/assets/illustration.webp";
 import { useState } from "react";
-import { useLoaderData } from "react-router";
+import { useLoaderData, useRevalidator } from "react-router";
+import { DeleteTwoTone, ExclamationCircleFilled } from "@ant-design/icons";
+import { removeRole } from "~/services/role";
+import { useRoleStore } from "~/stores/useRoleStore";
 const ColorList = ["#1677ff", "#52c41a", "#faad14"];
 export default function RoleCars() {
   const [modalStatus, setModalStatus] = useState({
@@ -12,6 +15,7 @@ export default function RoleCars() {
   });
   const [activeRole, setActiveRole] = useState(null);
   const { roles } = useLoaderData();
+  const revalidator = useRevalidator();
 
   return (
     <>
@@ -66,14 +70,43 @@ export default function RoleCars() {
                 </Avatar.Group>
               </div>
               <div className="text-xl font-bold mb-2">{item.roleName}</div>
-              <a
-                onClick={() => {
-                  setActiveRole(item);
-                  setModalStatus(pre => ({ ...pre, permissionEdit: true }));
-                }}
-              >
-                编辑
-              </a>
+              <div className="flex justify-between">
+                <a
+                  onClick={() => {
+                    setActiveRole(item);
+                    setModalStatus(pre => ({ ...pre, permissionEdit: true }));
+                  }}
+                >
+                  编辑
+                </a>
+                <Popconfirm
+                  placement="topRight"
+                  icon={
+                    <ExclamationCircleFilled style={{ color: "#ff4d4f" }} />
+                  }
+                  title="确认删除该角色？"
+                  description="删除后该角色及其权限将被清除，关联用户可能受影响。"
+                  onConfirm={async () => {
+                    const { code, msg } = await removeRole(item.id);
+                    if (code === 0) {
+                      message.success(msg);
+                      useRoleStore.getState().reset();
+                      await revalidator.revalidate();
+                    } else {
+                      message.error(msg);
+                    }
+                  }}
+                  okText="确认"
+                  cancelText="取消"
+                  okButtonProps={{ danger: true }}
+                >
+                  <Button
+                    size="small"
+                    type="text"
+                    icon={<DeleteTwoTone twoToneColor="#ff4d4f" />}
+                  />
+                </Popconfirm>
+              </div>
             </div>
           ))}
           <div className="grid grid-cols-2 bg-white rounded-3xl px-6 shadow-sm border border-gray-50 min-h-36.75">

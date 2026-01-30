@@ -68,7 +68,7 @@ export default function LogDetailsDrawer({ open, onClose, data }: Props) {
       label: "请求数据",
       children: (
         <pre className="w-full bg-[#f5f5f7] p-3 rounded-lg text-[12px] whitespace-pre-wrap break-all leading-relaxed text-[#1d1d1f] font-mono">
-          {data.requestParams}
+          {JSON.stringify(data.requestParams, null, 2)}
         </pre>
       ),
     },

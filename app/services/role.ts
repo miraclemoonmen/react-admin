@@ -1,33 +1,39 @@
-import { request } from "~/services/request";
+import { http } from "~/services/http";
 
-export async function getRoles() {
-  return request(`/sys/roles`, {
+export async function getRoleList() {
+  return http(`/roles`, {
     method: "GET",
   });
 }
 
 export async function addRole(data) {
-  return request(`/sys/roles`, {
+  return http(`/roles`, {
     method: "POST",
     data,
   });
 }
 
-export async function getPermissionTemplate() {
-  return request(`/sys/roles/permissions/template`, {
+export async function getPermissionList() {
+  return http(`/permissions`, {
     method: "GET",
   });
 }
 
-export async function getPermission(id: number) {
-  return request(`/sys/roles/${id}/permissions`, {
+export async function getMenuIdsByRoleId(id: number) {
+  return http(`/roles/${id}/permissions`, {
     method: "GET",
   });
 }
 
-export async function updatePermission(data) {
-  return request(`/sys/roles/${data.id}`, {
+export async function updateRolePermissions(data) {
+  return http(`/roles/${data.id}`, {
     method: "PUT",
     data,
+  });
+}
+
+export async function removeRole(id) {
+  return http(`/roles/${id}`, {
+    method: "DELETE"
   });
 }

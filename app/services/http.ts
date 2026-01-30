@@ -9,9 +9,9 @@ export interface FetchOptions extends RequestInit {
   method?: Method;
 }
 
-export const DEFAULT_BASE_URL = "/api";
+export const DEFAULT_BASE_URL = "/console";
 
-export async function request<T = any>(
+export async function http<T = any>(
   url: string,
   config: FetchOptions = {},
 ): Promise<T> {

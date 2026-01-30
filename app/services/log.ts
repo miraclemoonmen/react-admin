@@ -1,7 +1,7 @@
-import { request } from "~/services/request";
+import { http } from "~/services/http";
 
 export async function getLogs(params: string) {
-  return request(`/logs`, {
+  return http(`/logs`, {
     method: "GET",
     params,
   });

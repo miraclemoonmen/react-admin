@@ -72,10 +72,6 @@ export default function User() {
       dataIndex: "username",
     },
     {
-      title: "昵称",
-      dataIndex: "nickname",
-    },
-    {
       title: "邮箱",
       dataIndex: "email",
     },
@@ -187,7 +183,7 @@ export default function User() {
             }}
           >
             <Form.Item name="keyword">
-              <Input allowClear placeholder="用户名/昵称" />
+              <Input allowClear placeholder="用户名" />
             </Form.Item>
             <Form.Item name="roles">
               <Select

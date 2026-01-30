@@ -23,7 +23,6 @@ import {
   Space,
   Table,
   type TableProps,
-  Tag,
   Tooltip,
   Upload,
   type UploadProps,
@@ -110,7 +109,7 @@ export default function Index() {
       render: (_, record) => (
         <Space size="small">
           <Button
-            href={`/api/files/view/${record.fileUuid}`}
+            href={`/console/files/view/${record.id}`}
             target="_blank"
             size="small"
             type="text"
@@ -118,7 +117,7 @@ export default function Index() {
           />
           <Button
             size="small"
-            href={`/api/files/download/${record.fileUuid}`}
+            href={`/console/files/download/${record.id}`}
             type="text"
             icon={<DownloadOutlined />}
           />
@@ -128,7 +127,7 @@ export default function Index() {
             title={`删除${record.fileName}？`}
             description="此文件将从列表中移除。"
             onConfirm={async () => {
-              const { code, msg } = await remove(record.fileUuid);
+              const { code, msg } = await remove(record.id);
               if (code === 0) {
                 message.success(msg);
                 await revalidator.revalidate();
@@ -299,14 +298,14 @@ export default function Index() {
           }}
           columns={columns}
           dataSource={data.list}
-          rowKey="fileUuid"
+          rowKey="id"
           pagination={{
             current: data.page,
             pageSize: data.size,
             total: data.total,
             showSizeChanger: true,
             pageSizeOptions: ["10", "20"],
-            showQuickJumper: true, // 快速跳转页码
+            showQuickJumper: true,
             onChange: (p, ps) => onPageChange(p, ps),
           }}
         />

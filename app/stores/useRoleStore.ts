@@ -1,6 +1,6 @@
 import { create } from "zustand";
 // import { persist } from "zustand/middleware";
-import { getRoles } from "~/services/role";
+import { getRoleList } from "~/services/role";
 
 interface RoleState {
   userRoles: string[];
@@ -23,7 +23,7 @@ export const useRoleStore = create<RoleState>()(
       if (get().allRoles.length > 0) {
         return get().allRoles;
       }
-      const { data } = await getRoles();
+      const { data } = await getRoleList();
       set({
         allRoles: data,
         rolesMap: Object.fromEntries(data.map(i => [i.id, i.roleName])),

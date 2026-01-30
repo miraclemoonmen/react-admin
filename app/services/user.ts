@@ -1,41 +1,41 @@
-import { request } from "~/services/request";
+import { http } from "~/services/http";
 
 export function login(data: any) {
-  return request("/login", {
+  return http("/login", {
     method: "POST",
     data,
   });
 }
 
 export function logout() {
-  return request("/logout", {
+  return http("/logout", {
     method: "POST",
   });
 }
 
 export async function getUsers(params: any) {
-  return request(`/users`, {
+  return http(`/users`, {
     method: "GET",
     params,
   });
 }
 
 export async function create(data: any) {
-  return request(`/users`, {
+  return http(`/users`, {
     method: "POST",
     data,
   });
 }
 
 export async function update(data: any) {
-  return request(`/users/${data.id}`, {
+  return http(`/users/${data.id}`, {
     method: "PATCH",
     data,
   });
 }
 
 export async function remove(data: any) {
-  return request(`/users/${data.id}`, {
+  return http(`/users/${data.id}`, {
     method: "DELETE",
   });
 }

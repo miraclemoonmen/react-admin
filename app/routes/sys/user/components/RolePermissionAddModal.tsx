@@ -1,5 +1,5 @@
 import { Button, Checkbox, Form, Input, message, Modal } from "antd";
-import { getPermissionTemplate, addRole } from "~/services/role";
+import { getPermissionList, addRole } from "~/services/role";
 import { useEffect, useState } from "react";
 import { useRoleStore } from "~/stores/useRoleStore";
 import { useRevalidator } from "react-router";
@@ -11,7 +11,7 @@ interface Props {
 
 interface PermissionTemplate {
   id: number;
-  menuName: string;
+  name: string;
   actions: {
     id: number;
     name: string;
@@ -27,7 +27,7 @@ export default function RolePermissionEditModal({ open, onClose }: Props) {
 
   useEffect(() => {
     if (open) {
-      getPermissionTemplate().then(({ data }) => {
+      getPermissionList().then(({ data }) => {
         setPermissionTree(data);
       });
     }
@@ -106,7 +106,7 @@ export default function RolePermissionEditModal({ open, onClose }: Props) {
                 key={item.id}
                 className="flex items-center justify-between py-4 border-b border-gray-50 group"
               >
-                <div className="text-gray-600 font-medium">{item.menuName}</div>
+                <div className="text-gray-600 font-medium">{item.name}</div>
                 <div className="flex justify-end flex-wrap gap-x-6 gap-y-2 flex-1">
                   {item.actions.map(action => (
                     <Checkbox

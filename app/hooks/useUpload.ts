@@ -1,12 +1,12 @@
 import { useState } from "react";
-import { complete, getPresignedUrl } from "~/services/file";
+import { confirmUpload, getUploadAuth } from "~/services/file";
 import { useRevalidator } from "react-router";
 
 export default function useUpload() {
   const [fileList, setFileList] = useState<any[]>([]);
   const revalidator = useRevalidator();
   const customRequest = async ({ onSuccess, onError, file, onProgress }: any) => {
-    const { code, data } = await getPresignedUrl({
+    const { code, data } = await getUploadAuth({
       fileName: file.name,
       fileSize: file.size,
       contentType: file.type,
@@ -22,8 +22,8 @@ export default function useUpload() {
       };
       xhr.onload = async () => {
         if (xhr.status >= 200 && xhr.status < 300) {
-          await complete(data.fileUuid);
-          onSuccess(data.fileUuid);
+          await confirmUpload(data.id);
+          onSuccess(data.id);
         } else {
           onError(new Error("失败"));
         }

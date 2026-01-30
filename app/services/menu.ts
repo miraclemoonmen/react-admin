@@ -1,7 +1,7 @@
-import { request } from "~/services/request";
+import { http } from "~/services/http";
 
 export async function getMenu() {
-  return request(`/menu`, {
+  return http(`/menu`, {
     method: "GET",
   });
 }

@@ -13,7 +13,7 @@ export default function AdminMenu({ menu }: any) {
   return (
     <Menu
       onClick={({ key }) => navigate(key)}
-      className=" border-0!"
+      className="border-0!"
       mode="inline"
       items={menu}
       openKeys={openKeysState}

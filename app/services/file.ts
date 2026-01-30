@@ -1,27 +1,27 @@
-import { request } from "~/services/request";
+import { http } from "~/services/http";
 
 export async function getFiles(params): Promise<any> {
-  return request(`/files`, {
+  return http(`/files`, {
     method: "GET",
     params,
   });
 }
 
-export async function getPresignedUrl(data): Promise<any> {
-  return request("/files", {
+export async function getUploadAuth(data): Promise<any> {
+  return http("/files", {
     method: "POST",
     data,
   });
 }
 
-export async function complete(fileUuid): Promise<any> {
-  return request(`/files/complete/${fileUuid}`, {
+export async function confirmUpload(id): Promise<any> {
+  return http(`/files/complete/${id}`, {
     method: "POST",
   });
 }
 
-export async function remove(fileUuid: string): Promise<any> {
-  return request(`/files/${fileUuid}`, {
+export async function remove(id: string): Promise<any> {
+  return http(`/files/${id}`, {
     method: "DELETE",
   });
 }

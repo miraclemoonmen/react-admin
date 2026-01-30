@@ -82,15 +82,6 @@ export default function UserAddDrawer({ open, onClose }: Props) {
 
         <Row gutter={16}>
           <Col span={12}>
-            <Form.Item
-              label="昵称"
-              name="nickname"
-              rules={[{ required: true, message: "请输入昵称" }]}
-            >
-              <Input placeholder="例如：狗篮子" />
-            </Form.Item>
-          </Col>
-          <Col span={12}>
             <Form.Item label="性别" name="gender">
               <Radio.Group>
                 <Radio value={1}>男</Radio>

@@ -1,8 +1,8 @@
 import { Button, Checkbox, Form, Input, message, Modal } from "antd";
 import {
-  getPermissionTemplate,
-  getPermission,
-  updatePermission,
+  getPermissionList,
+  getMenuIdsByRoleId,
+  updateRolePermissions,
 } from "~/services/role";
 import { useEffect, useState } from "react";
 import { useRoleStore } from "~/stores/useRoleStore";
@@ -16,7 +16,7 @@ interface Props {
 
 interface PermissionTemplate {
   id: number;
-  menuName: string;
+  name: string;
   actions: {
     id: number;
     name: string;
@@ -36,7 +36,7 @@ export default function RolePermissionEditModal({
   const revalidator = useRevalidator();
   useEffect(() => {
     if (open) {
-      Promise.all([getPermissionTemplate(), getPermission(data.id)]).then(
+      Promise.all([getPermissionList(), getMenuIdsByRoleId(data.id)]).then(
         ([{ data: tplData }, { data: perData }]) => {
           setPermissionTree(tplData);
           setSelectedKeys(perData);
@@ -49,7 +49,7 @@ export default function RolePermissionEditModal({
   const obSubmit = async () => {
     await form.validateFields();
     const values = await form.validateFields();
-    const { code, msg } = await updatePermission({
+    const { code, msg } = await updateRolePermissions({
       id: data.id,
       ...values,
       permissions: selectedKeys,
@@ -118,7 +118,7 @@ export default function RolePermissionEditModal({
                 key={item.id}
                 className="flex items-center justify-between py-4 border-b border-gray-50 group"
               >
-                <div className="text-gray-600 font-medium">{item.menuName}</div>
+                <div className="text-gray-600 font-medium">{item.name}</div>
                 <div className="flex justify-end flex-wrap gap-x-6 gap-y-2 flex-1">
                   {item.actions.map(action => (
                     <Checkbox
