@@ -63,10 +63,10 @@ export default function User() {
   const [currentRecord, setCurrentRecord] = useState<any>(null);
   const revalidator = useRevalidator();
   const columns: TableProps<DataType>["columns"] = [
-    {
-      title: "ID",
-      dataIndex: "id",
-    },
+    // {
+    //   title: "ID",
+    //   dataIndex: "id",
+    // },
     {
       title: "用户名",
       dataIndex: "username",
@@ -75,10 +75,10 @@ export default function User() {
       title: "邮箱",
       dataIndex: "email",
     },
-    {
-      title: "手机号",
-      dataIndex: "phone",
-    },
+    // {
+    //   title: "手机号",
+    //   dataIndex: "phone",
+    // },
     {
       title: "所属角色",
       dataIndex: "roleName",
@@ -100,10 +100,10 @@ export default function User() {
       dataIndex: "avatar",
       key: "avatar",
     },*/
-    {
-      title: "账号状态",
-      dataIndex: "status",
-    },
+    // {
+    //   title: "账号状态",
+    //   dataIndex: "status",
+    // },
     {
       title: "最后登录IP",
       dataIndex: "lastLoginIp",
@@ -201,18 +201,6 @@ export default function User() {
             </Form.Item>
             <Form.Item name="createdAtRange">
               <RangePicker />
-            </Form.Item>
-            <Form.Item name="status">
-              <Select
-                placeholder="账号状态"
-                style={{ width: 120 }}
-                allowClear
-                options={[
-                  { value: "0", label: "正常" },
-                  { value: "1", label: "停用" },
-                  { value: "2", label: "锁定" },
-                ]}
-              />
             </Form.Item>
           </Form>
           <Flex gap="small" wrap>

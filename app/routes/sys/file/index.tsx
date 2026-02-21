@@ -20,6 +20,7 @@ import {
   message,
   Popconfirm,
   Progress,
+  Select,
   Space,
   Table,
   type TableProps,
@@ -83,6 +84,10 @@ export default function Index() {
       dataIndex: "fileName",
     },
     {
+      title: "桶",
+      dataIndex: "bucket",
+    },
+    {
       title: "大小",
       dataIndex: "fileSize",
       render: (_, record) => (
@@ -92,16 +97,24 @@ export default function Index() {
     {
       title: "上传状态",
       dataIndex: "status",
-      render: (_, record) =>
-        record.status === 0 ? (
-          <Badge status="success" text="完成" />
-        ) : (
-          <Badge status="error" text="失败" />
-        ),
+      render: (_, record) => {
+        switch (record.status) {
+          case 0:
+            return <Badge status="success" text="完成" />;
+          case -2:
+            return <Badge status="error" text="失败" />;
+          default:
+            return <Badge status="warning" text="非公开" />;
+        }
+      },
     },
     {
       title: "时间",
       dataIndex: "createdAt",
+    },
+    {
+      title: "创建者",
+      dataIndex: "createdBy",
     },
     {
       title: "操作",
@@ -166,9 +179,6 @@ export default function Index() {
         <Dragger {...props}>
           <CloudUploadOutlined className="text-5xl transition-all duration-500 [.ant-upload-drag:hover_&]:text-[#1677FF]!" />
           <p className="font-semibold text-gray-900">点击或将文件拖拽至此处</p>
-          <p className="mt-2 text-sm text-gray-400">
-            支持任意格式的文档或附件，单次不超过 50MB
-          </p>
         </Dragger>
       </div>
       <motion.div layout className="mt-4 grid grid-cols-3 gap-4 relative">
@@ -281,6 +291,17 @@ export default function Index() {
           >
             <Form.Item name="keyword">
               <Input allowClear placeholder="名称" />
+            </Form.Item>
+            <Form.Item name="status">
+              <Select
+                placeholder="状态"
+                style={{ width: 120 }}
+                allowClear
+                options={[
+                  { value: "-2", label: "上传失败" },
+                  { value: "-1", label: "非公开" }
+                ]}
+              />
             </Form.Item>
             <Form.Item name="createdAtRange">
               <RangePicker />

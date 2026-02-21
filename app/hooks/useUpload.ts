@@ -2,14 +2,22 @@ import { useState } from "react";
 import { confirmUpload, getUploadAuth } from "~/services/file";
 import { useRevalidator } from "react-router";
 
+const bucket = import.meta.env.VITE_BUCKET;
+
 export default function useUpload() {
   const [fileList, setFileList] = useState<any[]>([]);
   const revalidator = useRevalidator();
-  const customRequest = async ({ onSuccess, onError, file, onProgress }: any) => {
+  const customRequest = async ({
+    onSuccess,
+    onError,
+    file,
+    onProgress,
+  }: any) => {
     const { code, data } = await getUploadAuth({
       fileName: file.name,
       fileSize: file.size,
       contentType: file.type,
+      bucket,
     });
     if (code === 0) {
       const xhr = new XMLHttpRequest();
@@ -35,7 +43,7 @@ export default function useUpload() {
       onError();
       await revalidator.revalidate();
     }
-  }
+  };
   return {
     fileList,
     setFileList,

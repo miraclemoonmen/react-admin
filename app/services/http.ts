@@ -44,6 +44,7 @@ export async function http<T = any>(
     headers: requestHeaders,
     body,
     ...rest,
+    credentials: "include",
   });
   if (!res.ok) {
     if (res.status === 401) {
