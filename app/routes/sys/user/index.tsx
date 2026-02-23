@@ -63,10 +63,6 @@ export default function User() {
   const [currentRecord, setCurrentRecord] = useState<any>(null);
   const revalidator = useRevalidator();
   const columns: TableProps<DataType>["columns"] = [
-    // {
-    //   title: "ID",
-    //   dataIndex: "id",
-    // },
     {
       title: "用户名",
       dataIndex: "username",
@@ -75,42 +71,24 @@ export default function User() {
       title: "邮箱",
       dataIndex: "email",
     },
-    // {
-    //   title: "手机号",
-    //   dataIndex: "phone",
-    // },
     {
       title: "所属角色",
       dataIndex: "roleName",
       render: (_, record) => (
         <Flex gap="small" align="center" wrap>
-          {record.roles?.map(item => (
+          {record.roles.map(item => (
             <Tag key={item}>{useRoleStore.getState().rolesMap[item]}</Tag>
           ))}
         </Flex>
       ),
     },
-    /*    {
-      title: "性别",
-      dataIndex: "gender",
-      key: "gender",
-    },
-    {
-      title: "头像",
-      dataIndex: "avatar",
-      key: "avatar",
-    },*/
-    // {
-    //   title: "账号状态",
-    //   dataIndex: "status",
-    // },
     {
       title: "最后登录IP",
       dataIndex: "lastLoginIp",
     },
     {
-      title: "创建时间",
-      dataIndex: "createdAt",
+      title: "最后登录时间",
+      dataIndex: "lastLoginAt",
     },
     {
       title: "操作",
@@ -177,7 +155,7 @@ export default function User() {
           <Form
             form={form}
             layout="inline"
-            initialValues={formInitialValues}
+            initialValues={formInitialValues()}
             onValuesChange={(_, allValues) => {
               handleSearch(allValues);
             }}
@@ -242,7 +220,7 @@ export default function User() {
             total: users.total,
             showSizeChanger: true,
             pageSizeOptions: ["10", "20"],
-            showQuickJumper: true, // 快速跳转页码
+            showQuickJumper: true,
             onChange: (p, ps) => onPageChange(p, ps),
           }}
         />

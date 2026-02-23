@@ -5,6 +5,11 @@ import tsconfigPaths from "vite-tsconfig-paths";
 import devtoolsJson from "vite-plugin-devtools-json";
 import { visualizer } from "rollup-plugin-visualizer";
 import { compression } from "vite-plugin-compression2";
+import babel from "vite-plugin-babel";
+
+const ReactCompilerConfig = {
+  /* ... */
+};
 
 export default defineConfig({
   plugins: [
@@ -18,6 +23,13 @@ export default defineConfig({
     visualizer({
       filename: "stats.html",
       gzipSize: true, // 显示压缩后的大小
+    }),
+    babel({
+      filter: /\.[jt]sx?$/,
+      babelConfig: {
+        presets: ["@babel/preset-typescript"],
+        plugins: [["babel-plugin-react-compiler", ReactCompilerConfig]],
+      },
     }),
   ],
   server: {

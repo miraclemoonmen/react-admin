@@ -2,6 +2,10 @@ import { Menu } from "antd";
 import { useLocation, useNavigate } from "react-router";
 import { useState } from "react";
 
+const MENU_DEFAULT_PARAMS = {
+  "/sys/audit": "?status=-1",
+};
+
 export default function AdminMenu({ menu }: any) {
   const location = useLocation();
   const navigate = useNavigate();
@@ -12,7 +16,10 @@ export default function AdminMenu({ menu }: any) {
   const [openKeysState, setOpenKeysState] = useState<string[]>(openKeys);
   return (
     <Menu
-      onClick={({ key }) => navigate(key)}
+      onClick={({ key }) => {
+        const params = MENU_DEFAULT_PARAMS[key] || "";
+        navigate(key + params);
+      }}
       className="border-0!"
       mode="inline"
       items={menu}

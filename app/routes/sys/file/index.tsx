@@ -50,7 +50,7 @@ interface FormValues {
   createTimeRange?: [Dayjs, Dayjs];
 }
 
-export async function clientLoader({ request }: Route.ActionArgs) {
+export async function clientLoader({ request }: Route.ClientLoaderArgs) {
   const url = new URL(request.url);
   return await getFiles(url.search);
 }
@@ -104,7 +104,7 @@ export default function Index() {
           case -2:
             return <Badge status="error" text="失败" />;
           default:
-            return <Badge status="warning" text="非公开" />;
+            return <Badge status="warning" text="私有" />;
         }
       },
     },
@@ -284,7 +284,7 @@ export default function Index() {
           <Form
             form={form}
             layout="inline"
-            initialValues={formInitialValues}
+            initialValues={formInitialValues()}
             onValuesChange={(_, allValues) => {
               handleSearch(allValues);
             }}
@@ -298,8 +298,8 @@ export default function Index() {
                 style={{ width: 120 }}
                 allowClear
                 options={[
-                  { value: "-2", label: "上传失败" },
-                  { value: "-1", label: "非公开" }
+                  { value: "-2", label: "失败" },
+                  { value: "-1", label: "私有" },
                 ]}
               />
             </Form.Item>

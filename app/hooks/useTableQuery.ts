@@ -2,7 +2,6 @@ import { useSearchParams } from "react-router";
 import { useDebounceFn } from "ahooks";
 import { Form } from "antd";
 import dayjs from "dayjs";
-import { useMemo } from "react";
 import qs from "qs";
 
 interface QueryConfig {
@@ -14,7 +13,7 @@ export function useTableQuery<T extends object>(config: QueryConfig = {}) {
   const [searchParams, setSearchParams] = useSearchParams();
   const [form] = Form.useForm();
   const { dateFields = [], numberFields = [] } = config;
-  const formInitialValues = useMemo(() => {
+  const formInitialValues = () => {
     const values = qs.parse(searchParams.toString(), {
       ignoreQueryPrefix: true,
     }) as any;
@@ -37,7 +36,7 @@ export function useTableQuery<T extends object>(config: QueryConfig = {}) {
       }
     });
     return values as T;
-  }, [searchParams, dateFields, numberFields]);
+  };
 
   const { run: handleSearch } = useDebounceFn(
     values => {

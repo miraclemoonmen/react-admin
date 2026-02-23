@@ -1,4 +1,3 @@
-import type { Route } from "./+types";
 import {
   Badge,
   Button,
@@ -6,57 +5,63 @@ import {
   Flex,
   Form,
   Input,
+  message,
   Select,
   Table,
   type TableProps,
 } from "antd";
+const { RangePicker } = DatePicker;
 import { useTableQuery } from "~/hooks/useTableQuery";
 import { useLoaderData, useNavigation } from "react-router";
-import { getLogs } from "~/services/log";
-import { useState } from "react";
-import LogDetailsDrawer from "~/routes/sys/log/components/LogDetailsDrawer";
 import { EyeOutlined } from "@ant-design/icons";
-
-const { RangePicker } = DatePicker;
+import type { Route } from "./+types";
+import { getAuditRecord } from "~/services/audit";
+import { useRef, useState } from "react";
+import AuditDetailsDrawer from "~/routes/sys/audit/components/AuditDetailsDrawer";
+import { http } from "~/services/http";
 
 export async function clientLoader({ request }: Route.ClientLoaderArgs) {
   const url = new URL(request.url);
-  return await getLogs(url.search);
+  return await getAuditRecord(url.search);
 }
 
 export default function Index() {
+  const [active, setActive] = useState(false);
+  const auditId = useRef(-1);
+  const [record, setRecord] = useState({});
   const columns: TableProps["columns"] = [
     {
-      title: "所属功能",
-      dataIndex: "module",
+      title: "发布者",
+      dataIndex: "creator",
     },
     {
-      title: "操作类型",
-      dataIndex: "action",
+      title: "类型",
+      dataIndex: "bizType",
+      render: bizType => {
+        switch (bizType) {
+          case 1:
+            return "帖子";
+          case 2:
+            return "评论";
+          default:
+            return "图片";
+        }
+      },
     },
     {
-      title: "路径",
-      dataIndex: "requestUrl",
-      ellipsis: true,
-    },
-    {
-      title: "方法",
-      dataIndex: "requestMethod",
+      title: "命中关键词",
+      dataIndex: "hitKeywords",
+      render: hitKeywords => hitKeywords?.join(",") ?? "-",
     },
     {
       title: "执行结果",
       dataIndex: "status",
       render: (_, record) =>
         record.status === 0 ? (
-          <Badge status="success" text="完成" />
+          <Badge status="success" text="通过" />
         ) : (
-          <Badge status="error" text="失败" />
+          <Badge status="error" text="未通过" />
         ),
-    },
-    {
-      title: "耗时",
-      dataIndex: "costTime",
-      render: ms => `${ms} ms`,
     },
     {
       title: "时间",
@@ -65,34 +70,56 @@ export default function Index() {
     {
       title: "操作",
       key: "action",
-      render: (_, record) => (
-        <Button
-          onClick={() => {
-            setRecord(record);
-            setActive(true);
-          }}
-          size="small"
-          type="text"
-          icon={<EyeOutlined />}
-        />
-      ),
+      render: (_, record) => {
+        switch (record.bizType) {
+          case 1:
+            return (
+              <Button
+                onClick={async () => {
+                  auditId.current = record.id;
+                  const { data, code, msg } = await http(
+                    `/auditRecord/posts/${record.bizId}`,
+                  );
+                  if (code === 0) {
+                    setRecord(data);
+                    setActive(true);
+                  } else {
+                    message["error"](msg);
+                  }
+                }}
+                size="small"
+                type="text"
+                icon={<EyeOutlined />}
+              />
+            );
+          case 3:
+            return (
+              <Button
+                href={`/console/files/view/${record.bizId}`}
+                target="_blank"
+                size="small"
+                type="text"
+                icon={<EyeOutlined />}
+              />
+            );
+        }
+      },
     },
   ];
+  const { data } = useLoaderData();
 
+  const navigation = useNavigation();
   const { form, formInitialValues, handleSearch, handleReset, onPageChange } =
     useTableQuery<any>({
       dateFields: ["createdAtRange"],
     });
-  const [active, setActive] = useState(false);
-  const [record, setRecord] = useState({});
-  const navigation = useNavigation();
-  const { data } = useLoaderData();
+
   return (
     <>
       <div className="mb-6">
-        <h2 className="text-xl font-bold text-gray-800">日志</h2>
+        <h2 className="text-xl font-bold text-gray-800">审核</h2>
         <p className="text-sm text-gray-400 mt-1.5 leading-relaxed max-w-3xl">
-          审计重要操作行为。
+          在公开前需经过系统核准。
         </p>
       </div>
       <section className="bg-white p-5 rounded-3xl shadow-sm border border-gray-50">
@@ -105,17 +132,14 @@ export default function Index() {
               handleSearch(allValues);
             }}
           >
-            <Form.Item name="keyword">
-              <Input allowClear placeholder="搜索任何相关记录..." />
-            </Form.Item>
             <Form.Item name="status">
               <Select
                 placeholder="状态"
                 style={{ width: 120 }}
                 allowClear
                 options={[
-                  { value: "0", label: "完成" },
-                  { value: "1", label: "失败" },
+                  { value: "0", label: "通过" },
+                  { value: "-1", label: "未通过" },
                 ]}
               />
             </Form.Item>
@@ -147,8 +171,9 @@ export default function Index() {
             onChange: (p, ps) => onPageChange(p, ps),
           }}
         />
-        <LogDetailsDrawer
-          data={record}
+        <AuditDetailsDrawer
+          auditId={auditId}
+          record={record}
           open={active}
           onClose={() => setActive(false)}
         />

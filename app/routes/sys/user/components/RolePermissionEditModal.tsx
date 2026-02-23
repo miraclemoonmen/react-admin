@@ -50,7 +50,7 @@ export default function RolePermissionEditModal({
     await form.validateFields();
     const values = await form.validateFields();
     const { code, msg } = await updateRolePermissions({
-      id: data.id,
+      id: data?.id,
       ...values,
       permissions: selectedKeys,
     });
