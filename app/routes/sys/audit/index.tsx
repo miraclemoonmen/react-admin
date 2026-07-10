@@ -4,18 +4,18 @@ import {
   DatePicker,
   Flex,
   Form,
-  Input,
   message,
+  Popconfirm,
   Select,
   Table,
   type TableProps,
 } from "antd";
 const { RangePicker } = DatePicker;
 import { useTableQuery } from "~/hooks/useTableQuery";
-import { useLoaderData, useNavigation } from "react-router";
-import { EyeOutlined } from "@ant-design/icons";
+import { useLoaderData, useNavigation, useRevalidator } from "react-router";
+import { CheckOutlined, EyeOutlined } from "@ant-design/icons";
 import type { Route } from "./+types";
-import { getAuditRecord } from "~/services/audit";
+import { approveCommentAudit, getAuditRecord } from "~/services/audit";
 import { useRef, useState } from "react";
 import AuditDetailsDrawer from "~/routes/sys/audit/components/AuditDetailsDrawer";
 import { http } from "~/services/http";
@@ -29,6 +29,26 @@ export default function Index() {
   const [active, setActive] = useState(false);
   const auditId = useRef(-1);
   const [record, setRecord] = useState({});
+  const [approvingId, setApprovingId] = useState<number | null>(null);
+  const revalidator = useRevalidator();
+
+  const handleApproveComment = async (id: number) => {
+    setApprovingId(id);
+    try {
+      const { code, msg } = await approveCommentAudit(id);
+      if (code === 0) {
+        message.success(msg || "审核通过");
+        await revalidator.revalidate();
+      } else {
+        message.error(msg);
+      }
+    } catch {
+      message.error("审核失败，请稍后重试");
+    } finally {
+      setApprovingId(null);
+    }
+  };
+
   const columns: TableProps["columns"] = [
     {
       title: "发布者",
@@ -91,6 +111,28 @@ export default function Index() {
                 type="text"
                 icon={<EyeOutlined />}
               />
+            );
+          case 2:
+            if (record.status !== -1) {
+              return null;
+            }
+            return (
+              <Popconfirm
+                title="确认通过该评论？"
+                description="通过后评论将公开显示。"
+                okText="通过"
+                cancelText="取消"
+                onConfirm={() => handleApproveComment(record.id)}
+              >
+                <Button
+                  loading={approvingId === record.id}
+                  size="small"
+                  type="text"
+                  icon={<CheckOutlined />}
+                >
+                  通过
+                </Button>
+              </Popconfirm>
             );
           case 3:
             return (
