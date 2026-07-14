@@ -4,6 +4,7 @@ import { useState } from "react";
 
 const MENU_DEFAULT_PARAMS = {
   "/sys/audit": "?status=-1",
+  "/sys/report": "?status=-1",
 };
 
 export default function AdminMenu({ menu }: any) {
