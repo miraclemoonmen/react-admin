@@ -7,6 +7,9 @@ import eslintConfigPrettier from "eslint-config-prettier";
 import { defineConfig } from "eslint/config";
 
 export default defineConfig([
+  {
+    ignores: [".react-router/**", "build/**", "dist/**", "node_modules/**"],
+  },
   // JS 推荐规则
   js.configs.recommended,
 
@@ -23,6 +26,7 @@ export default defineConfig([
   eslintConfigPrettier,
   {
     languageOptions: { globals: globals.browser },
+    settings: { react: { version: "detect" } },
     rules: {
       "react/react-in-jsx-scope": "off", // 禁用旧规则
       "@typescript-eslint/no-explicit-any": "off", // 允许使用 any
