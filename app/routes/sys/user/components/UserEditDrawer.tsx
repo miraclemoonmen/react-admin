@@ -25,7 +25,6 @@ export default function UserAddDrawer({ open, onClose, initialValues }: Props) {
   const [form] = Form.useForm();
   useEffect(() => {
     if (open) {
-      console.log(initialValues);
       form.setFieldsValue(initialValues);
     }
   }, [open, initialValues, form]);

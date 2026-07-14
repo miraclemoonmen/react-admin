@@ -1,8 +1,7 @@
-import { Button, Checkbox, Form, Input, message } from "antd";
+import { Button, Form, Input, message } from "antd";
 import {
   redirect,
   useActionData,
-  useNavigate,
   useNavigation,
   useSubmit,
 } from "react-router";
@@ -14,7 +13,6 @@ import type { Route } from "./+types";
 type FieldType = {
   username?: string;
   password?: string;
-  remember?: string;
 };
 
 export async function clientAction({ request }: Route.ActionArgs) {
@@ -26,7 +24,6 @@ export async function clientAction({ request }: Route.ActionArgs) {
 }
 
 export default function Login() {
-  const navigate = useNavigate();
   const submit = useSubmit();
   const actionData = useActionData();
   const navigation = useNavigation();
@@ -34,7 +31,7 @@ export default function Login() {
     if (!actionData) return;
     const { msg } = actionData;
     message["error"](msg);
-  }, [navigate, actionData]);
+  }, [actionData]);
 
   return (
     <main
@@ -46,12 +43,12 @@ export default function Login() {
           <div className="absolute top-20 left-20 w-64 bg-white text-slate-800 rounded-xl shadow-xl p-4 -rotate-6">
             <div className="h-28 bg-yellow-200 rounded-lg mb-3"></div>
             <h4 className="text-sm font-semibold mb-2">
-              沙拉在跳舞 🥗💃，你敢吃吗 😳
+              WinRide 内容与社区管理
             </h4>
             <ul className="text-xs text-slate-500 space-y-1">
-              <li>• 数据正在思考人生 🧠💻</li>
-              <li>• 猫咪偷了你的鼠标 🐱🖱️</li>
-              <li>• AI 已经写好了你的明天 🤖📄</li>
+              <li>• 内容审核与发布管理</li>
+              <li>• 用户、角色与权限管理</li>
+              <li>• 文件和操作日志追踪</li>
             </ul>
           </div>
 
@@ -59,34 +56,34 @@ export default function Login() {
             <ul className="text-xs space-y-2">
               <li className="flex items-center gap-2">
                 <span className="w-6 h-6 bg-indigo-100 rounded-md"></span>
-                云端正在飘舞 🎈☁️
+                待审核内容
               </li>
               <li className="flex items-center gap-2">
                 <span className="w-6 h-6 bg-emerald-100 rounded-md"></span>
-                Wi-Fi 在唱歌 📶🎤
+                系统运行记录
               </li>
               <li className="flex items-center gap-2">
                 <span className="w-6 h-6 bg-pink-100 rounded-md"></span>
-                星星在后台开会 🌟
+                权限边界管理
               </li>
             </ul>
           </div>
 
           <div className="absolute bottom-16 left-12">
             <h2 className="text-2xl font-semibold mb-3">
-              如果地球是方的 🌍⬛，你会骑哪条边 ？
+              让每一次公开发布都有迹可循
             </h2>
             <p className="text-sm text-blue-100 max-w-xs leading-relaxed">
-              如果你能读懂这句话 🤯，你已经赢了一点积分 🏅
+              登录后进入 WinRide 管理工作台。
             </p>
           </div>
         </aside>
         <section className="h-full flex flex-col justify-center px-16 bg-white">
           <h1 className="text-2xl font-semibold text-slate-800">
-            小恐龙 🦖 正在排队等待注册！
+            欢迎回到 WinRide
           </h1>
           <p className="text-sm text-slate-400 mt-2 mb-8 leading-relaxed">
-            后台咖啡 ☕ 已为你备好
+            请使用具备管理权限的账号登录
           </p>
           <Form
             size="large"
@@ -110,13 +107,6 @@ export default function Login() {
                 autoComplete="current-password"
                 placeholder="密码"
               />
-            </Form.Item>
-            <Form.Item<FieldType>
-              name="remember"
-              valuePropName="checked"
-              label={null}
-            >
-              <Checkbox>记住我</Checkbox>
             </Form.Item>
             <Form.Item label={null}>
               <Button

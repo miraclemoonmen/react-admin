@@ -14,7 +14,7 @@ import zhCN from "antd/locale/zh_CN";
 import "dayjs/locale/zh-cn";
 
 export function meta() {
-  return [{ title: "Distant Dreamer" }];
+  return [{ title: "WinRide 管理台" }];
 }
 
 export function Layout({ children }: { children: React.ReactNode }) {
@@ -42,17 +42,19 @@ export default function App() {
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
-  console.error(error);
+  if (import.meta.env.DEV) console.error(error);
   if (isRouteErrorResponse(error)) {
     return <ErrorPage status={error.status} text={error.data} />;
   } else if (error instanceof Error) {
     return (
       <main className="pt-16 p-4 container mx-auto">
-        <h1>Oops!</h1>
-        <p>{error.message}</p>
-        <pre className="w-full p-4 overflow-x-auto">
-          <code>{error.stack}</code>
-        </pre>
+        <h1>系统暂时无法处理该请求</h1>
+        <p>{import.meta.env.DEV ? error.message : "请稍后重试"}</p>
+        {import.meta.env.DEV && (
+          <pre className="w-full p-4 overflow-x-auto">
+            <code>{error.stack}</code>
+          </pre>
+        )}
       </main>
     );
   } else {
