@@ -12,3 +12,9 @@ export async function approveCommentAudit(auditId: number) {
     method: "PUT",
   });
 }
+
+export async function approvePostAudit(auditId: number) {
+  return http(`/auditRecord/${auditId}/approve`, {
+    method: "PUT",
+  });
+}

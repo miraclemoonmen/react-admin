@@ -6,20 +6,24 @@ import {
   message,
   Space,
 } from "antd";
-import { http } from "~/services/http";
-import { type RefObject, useState } from "react";
+import { useState } from "react";
+import { approvePostAudit } from "~/services/audit";
 const endpoint = import.meta.env.VITE_MINIO_ENDPOINT;
 const bucket = import.meta.env.VITE_BUCKET_POSTS;
 interface Props {
-  auditId: RefObject<number>;
+  auditId: number;
+  status: number | null;
   open: boolean;
   onClose: () => void;
+  onApproved: () => Promise<void>;
   record: Record<string, any>;
 }
 export default function AuditDetailsDrawer({
   auditId,
+  status,
   open,
   onClose,
+  onApproved,
   record,
 }: Props) {
   const [loading, setLoading] = useState(false);
@@ -53,7 +57,7 @@ export default function AuditDetailsDrawer({
   if (record.images?.length > 0) {
     items.push(
       ...(record.images.map(i => ({
-        key: i,
+        key: i.id,
         label: "附件",
         children: <img key={i.id} src={`${endpoint}/${bucket}/${i.path}`} />,
       })) ?? []),
@@ -68,36 +72,32 @@ export default function AuditDetailsDrawer({
       open={open}
       onClose={onClose}
       extra={
-        <Space>
-          <Button
-            loading={loading}
-            type="primary"
-            onClick={async () => {
-              setLoading(true);
-              const { code, msg } = await http(
-                `/auditRecord/${auditId.current}/approve`,
-                {
-                  method: "PUT",
-                  data: {
-                    postId: record.id,
-                    poiId: record.poiId,
-                    creatorId: record.creatorId,
-                    fileIds: record.images?.map(i => i.id),
-                  },
-                },
-              );
-              if (code === 0) {
-                setLoading(false);
-                onClose();
-                message["success"](msg);
-              } else {
-                message["error"](msg);
-              }
-            }}
-          >
-            通过
-          </Button>
-        </Space>
+        open && status === -1 ? (
+          <Space>
+            <Button
+              loading={loading}
+              type="primary"
+              onClick={async () => {
+                setLoading(true);
+                try {
+                  const { code, msg } = await approvePostAudit(auditId);
+                  if (code === 0) {
+                    message.success(msg || "审核通过");
+                    await onApproved();
+                  } else {
+                    message.error(msg || "审核失败");
+                  }
+                } catch {
+                  message.error("审核失败，请稍后重试");
+                } finally {
+                  setLoading(false);
+                }
+              }}
+            >
+              通过
+            </Button>
+          </Space>
+        ) : null
       }
     >
       <Descriptions

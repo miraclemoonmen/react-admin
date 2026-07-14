@@ -16,9 +16,15 @@ import { useLoaderData, useNavigation, useRevalidator } from "react-router";
 import { CheckOutlined, EyeOutlined } from "@ant-design/icons";
 import type { Route } from "./+types";
 import { approveCommentAudit, getAuditRecord } from "~/services/audit";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import AuditDetailsDrawer from "~/routes/sys/audit/components/AuditDetailsDrawer";
 import { http } from "~/services/http";
+
+interface SelectedPostAudit {
+  auditId: number;
+  status: number;
+  detail: Record<string, any>;
+}
 
 export async function clientLoader({ request }: Route.ClientLoaderArgs) {
   const url = new URL(request.url);
@@ -26,9 +32,8 @@ export async function clientLoader({ request }: Route.ClientLoaderArgs) {
 }
 
 export default function Index() {
-  const [active, setActive] = useState(false);
-  const auditId = useRef(-1);
-  const [record, setRecord] = useState({});
+  const [selectedPostAudit, setSelectedPostAudit] =
+    useState<SelectedPostAudit | null>(null);
   const [approvingId, setApprovingId] = useState<number | null>(null);
   const revalidator = useRevalidator();
 
@@ -96,13 +101,15 @@ export default function Index() {
             return (
               <Button
                 onClick={async () => {
-                  auditId.current = record.id;
                   const { data, code, msg } = await http(
                     `/auditRecord/posts/${record.bizId}`,
                   );
                   if (code === 0) {
-                    setRecord(data);
-                    setActive(true);
+                    setSelectedPostAudit({
+                      auditId: record.id,
+                      status: record.status,
+                      detail: data,
+                    });
                   } else {
                     message["error"](msg);
                   }
@@ -214,10 +221,15 @@ export default function Index() {
           }}
         />
         <AuditDetailsDrawer
-          auditId={auditId}
-          record={record}
-          open={active}
-          onClose={() => setActive(false)}
+          auditId={selectedPostAudit?.auditId ?? -1}
+          status={selectedPostAudit?.status ?? null}
+          record={selectedPostAudit?.detail ?? {}}
+          open={selectedPostAudit !== null}
+          onClose={() => setSelectedPostAudit(null)}
+          onApproved={async () => {
+            setSelectedPostAudit(null);
+            await revalidator.revalidate();
+          }}
         />
       </section>
     </>
