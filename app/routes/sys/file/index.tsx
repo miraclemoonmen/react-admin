@@ -29,13 +29,16 @@ import {
   type UploadProps,
 } from "antd";
 import { motion, AnimatePresence } from "framer-motion";
-import useUpload from "~/hooks/useUpload";
+import { useEffect, useRef } from "react";
+import useUpload, { type PreviewUploadFile } from "~/hooks/useUpload";
 import { useTableQuery } from "~/hooks/useTableQuery";
 import { Dayjs } from "dayjs";
 import { useLoaderData, useNavigation, useRevalidator } from "react-router";
 import { getFiles } from "~/services/file";
 import { remove } from "~/services/file";
 import type { Route } from "./+types";
+import type { FileRecord } from "~/types/api";
+import { requireApiSuccess } from "~/services/http";
 const { Dragger } = Upload;
 const { RangePicker } = DatePicker;
 
@@ -43,8 +46,8 @@ const STATUS_MAP = {
   uploading: "active",
   done: "success",
   error: "exception",
-};
-interface FormValues {
+} as const;
+interface FormValues extends Record<string, unknown> {
   name?: string;
   status?: number;
   createTimeRange?: [Dayjs, Dayjs];
@@ -52,21 +55,37 @@ interface FormValues {
 
 export async function clientLoader({ request }: Route.ClientLoaderArgs) {
   const url = new URL(request.url);
-  return await getFiles(url.search);
+  const result = await getFiles(url.search);
+  if (result.code !== 0) {
+    throw new Response(result.msg || "文件列表加载失败", { status: 500 });
+  }
+  return requireApiSuccess(result);
 }
 
 export default function Index() {
   const revalidator = useRevalidator();
   const navigation = useNavigation();
   const { fileList, setFileList, customRequest } = useUpload();
-  const { data } = useLoaderData() as any;
-  const props: UploadProps = {
+  const fileListRef = useRef(fileList);
+  useEffect(() => {
+    fileListRef.current = fileList;
+  }, [fileList]);
+  useEffect(
+    () => () => {
+      fileListRef.current.forEach(file => {
+        if (file.localUrl?.startsWith("blob:")) URL.revokeObjectURL(file.localUrl);
+      });
+    },
+    [],
+  );
+  const data = useLoaderData<typeof clientLoader>();
+  const props: UploadProps<PreviewUploadFile> = {
     name: "file",
     multiple: true,
     showUploadList: false,
     fileList,
     beforeUpload: file => {
-      file["localUrl"] = URL.createObjectURL(file);
+      (file as PreviewUploadFile).localUrl = URL.createObjectURL(file);
       return true;
     },
     customRequest,
@@ -75,10 +94,19 @@ export default function Index() {
       if (file.status === "error" && file.percent === 0) {
         file.percent = 50;
       }
-      setFileList([...info.fileList]);
+      const nextFileList = [...info.fileList];
+      fileList.forEach(current => {
+        if (
+          current.localUrl?.startsWith("blob:") &&
+          !nextFileList.some(next => next.uid === current.uid)
+        ) {
+          URL.revokeObjectURL(current.localUrl);
+        }
+      });
+      setFileList(nextFileList);
     },
   };
-  const columns: TableProps["columns"] = [
+  const columns: TableProps<FileRecord>["columns"] = [
     {
       title: "名称",
       dataIndex: "fileName",
@@ -127,12 +155,16 @@ export default function Index() {
             size="small"
             type="text"
             icon={<EyeOutlined />}
+            aria-label={`查看文件 ${record.fileName}`}
+            title="查看"
           />
           <Button
             size="small"
             href={`/console/files/download/${record.id}`}
             type="text"
             icon={<DownloadOutlined />}
+            aria-label={`下载文件 ${record.fileName}`}
+            title="下载"
           />
           <Popconfirm
             placement="topRight"
@@ -156,6 +188,8 @@ export default function Index() {
               size="small"
               type="text"
               icon={<DeleteTwoTone twoToneColor="#ff4d4f" />}
+              aria-label={`删除文件 ${record.fileName}`}
+              title="删除"
             />
           </Popconfirm>
         </Space>
@@ -187,7 +221,7 @@ export default function Index() {
             const isUploading = file.status === "uploading";
             const isDone = file.status === "done";
             const isError = file.status === "error";
-            const isImage = file.type.startsWith("image/");
+            const isImage = file.type?.startsWith("image/") ?? false;
             return (
               <motion.div
                 layout
@@ -231,7 +265,7 @@ export default function Index() {
                         {file.name}
                       </span>
                       <span className="text-[12px] text-gray-400">
-                        {(file.size / (1024 * 1024)).toFixed(2)} MB
+                        {((file.size ?? 0) / (1024 * 1024)).toFixed(2)} MB
                       </span>
                     </div>
                   </div>
@@ -254,9 +288,12 @@ export default function Index() {
                       <Button
                         type="text"
                         icon={<CloseOutlined />}
-                        onClick={() =>
-                          setFileList(fileList.filter(f => f.uid !== file.uid))
-                        }
+                        onClick={() => {
+                          if (file.localUrl?.startsWith("blob:")) {
+                            URL.revokeObjectURL(file.localUrl);
+                          }
+                          setFileList(fileList.filter(f => f.uid !== file.uid));
+                        }}
                       />
                     )}
                   </div>
@@ -265,7 +302,11 @@ export default function Index() {
                   percent={file.percent}
                   showInfo={false}
                   size="small"
-                  status={STATUS_MAP[file.status]}
+                  status={
+                    file.status && file.status in STATUS_MAP
+                      ? STATUS_MAP[file.status as keyof typeof STATUS_MAP]
+                      : "normal"
+                  }
                 />
               </motion.div>
             );

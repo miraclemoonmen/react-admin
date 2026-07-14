@@ -13,6 +13,7 @@ import {
 import { useRevalidator } from "react-router";
 import { create } from "~/services/user";
 import { useRoleStore } from "~/stores/useRoleStore";
+import type { UserMutationInput } from "~/types/api";
 
 interface Props {
   open: boolean;
@@ -20,9 +21,9 @@ interface Props {
 }
 
 export default function UserAddDrawer({ open, onClose }: Props) {
-  const [form] = Form.useForm();
+  const [form] = Form.useForm<UserMutationInput>();
   const revalidator = useRevalidator();
-  const onFinish = async (values: any) => {
+  const onFinish = async (values: UserMutationInput) => {
     const { msg, code } = await create(values);
     if (code === 0) {
       onClose();

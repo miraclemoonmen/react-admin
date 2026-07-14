@@ -3,48 +3,56 @@ import { getPermissionList, addRole } from "~/services/role";
 import { useEffect, useState } from "react";
 import { useRoleStore } from "~/stores/useRoleStore";
 import { useRevalidator } from "react-router";
+import type { PermissionTemplate, RoleMutationInput } from "~/types/api";
+import { getErrorMessage } from "~/utils/errors";
+import { requireApiSuccess } from "~/services/http";
 
 interface Props {
   open: boolean;
   onClose: () => void;
 }
 
-interface PermissionTemplate {
-  id: number;
-  name: string;
-  actions: {
-    id: number;
-    name: string;
-  }[];
-}
 export default function RolePermissionEditModal({ open, onClose }: Props) {
   const [permissionTree, setPermissionTree] = useState<PermissionTemplate[]>(
     [],
   );
   const [selectedKeys, setSelectedKeys] = useState<number[]>([]);
   const revalidator = useRevalidator();
-  const [form] = Form.useForm();
+  const [form] = Form.useForm<Omit<RoleMutationInput, "permissions">>();
+  const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState("");
 
   useEffect(() => {
     if (open) {
-      getPermissionList().then(({ data }) => {
-        setPermissionTree(data);
-      });
+      setLoadError("");
+      getPermissionList()
+        .then(result => {
+          setPermissionTree(requireApiSuccess(result));
+        })
+        .catch(error => setLoadError(getErrorMessage(error, "权限列表加载失败")));
     }
   }, [open]);
 
   const handleSubmit = async () => {
-    await form.validateFields();
-    const values = await form.validateFields();
-    const { code, msg } = await addRole({
-      ...values,
-      permissions: selectedKeys,
-    });
-    message[code === 0 ? "success" : "error"](msg);
-    if (code === 0) {
-      onClose();
-      useRoleStore.getState().reset();
-      await revalidator.revalidate();
+    setLoading(true);
+    try {
+      const values = await form.validateFields();
+      const { code, msg } = await addRole({
+        ...values,
+        permissions: selectedKeys,
+      });
+      message[code === 0 ? "success" : "error"](msg);
+      if (code === 0) {
+        onClose();
+        form.resetFields();
+        setSelectedKeys([]);
+        useRoleStore.getState().reset();
+        await revalidator.revalidate();
+      }
+    } catch (error) {
+      message.error(getErrorMessage(error, "角色创建失败"));
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -69,13 +77,14 @@ export default function RolePermissionEditModal({ open, onClose }: Props) {
       footer={
         <div className="flex justify-center gap-4 pb-4">
           <Button onClick={onClose}>取消</Button>
-          <Button onClick={handleSubmit} type="primary">
+          <Button loading={loading} onClick={handleSubmit} type="primary">
             确定
           </Button>
         </div>
       }
     >
       <section>
+        {loadError && <p role="alert" className="mb-4 text-sm text-red-600">{loadError}</p>}
         <h3 className="text-lg font-bold text-[#4A4A65]">基本信息</h3>
         <Form
           form={form}

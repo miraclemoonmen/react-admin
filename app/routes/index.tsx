@@ -4,6 +4,7 @@ import AdminMenu from "~/layouts/AdminMenu";
 import AdminHeader from "~/layouts/AdminHeader";
 import { useState } from "react";
 import { getMenu } from "~/services/menu";
+import { requireApiSuccess } from "~/services/http";
 const { Sider, Content } = Layout;
 
 export function shouldRevalidate() {
@@ -11,8 +12,7 @@ export function shouldRevalidate() {
 }
 
 export async function clientLoader() {
-  const { data } = await getMenu();
-  return { menu: data };
+  return { menu: requireApiSuccess(await getMenu()) };
 }
 
 export default function Index() {

@@ -7,14 +7,18 @@ import { useLoaderData, useRevalidator } from "react-router";
 import { DeleteTwoTone, ExclamationCircleFilled } from "@ant-design/icons";
 import { removeRole } from "~/services/role";
 import { useRoleStore } from "~/stores/useRoleStore";
+import type { PageResult, Role, ConsoleUser } from "~/types/api";
 const ColorList = ["#1677ff", "#52c41a", "#faad14"];
 export default function RoleCars() {
   const [modalStatus, setModalStatus] = useState({
     permissionEdit: false,
     permissionAdd: false,
   });
-  const [activeRole, setActiveRole] = useState(null);
-  const { roles } = useLoaderData();
+  const [activeRole, setActiveRole] = useState<Role | null>(null);
+  const { roles } = useLoaderData<{
+    roles: Role[];
+    users: PageResult<ConsoleUser>;
+  }>();
   const revalidator = useRevalidator();
 
   return (
@@ -71,14 +75,16 @@ export default function RoleCars() {
               </div>
               <div className="text-xl font-bold mb-2">{item.roleName}</div>
               <div className="flex justify-between">
-                <a
+                <button
+                  type="button"
+                  className="cursor-pointer text-[#1677ff] hover:underline"
                   onClick={() => {
                     setActiveRole(item);
                     setModalStatus(pre => ({ ...pre, permissionEdit: true }));
                   }}
                 >
                   编辑
-                </a>
+                </button>
                 <Popconfirm
                   placement="topRight"
                   icon={
@@ -104,6 +110,8 @@ export default function RoleCars() {
                     size="small"
                     type="text"
                     icon={<DeleteTwoTone twoToneColor="#ff4d4f" />}
+                    aria-label={`删除角色 ${item.roleName}`}
+                    title="删除"
                   />
                 </Popconfirm>
               </div>

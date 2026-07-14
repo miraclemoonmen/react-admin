@@ -29,7 +29,7 @@ export default defineConfig([
     settings: { react: { version: "detect" } },
     rules: {
       "react/react-in-jsx-scope": "off", // 禁用旧规则
-      "@typescript-eslint/no-explicit-any": "off", // 允许使用 any
+      "@typescript-eslint/no-explicit-any": "error",
     },
   },
 ]);

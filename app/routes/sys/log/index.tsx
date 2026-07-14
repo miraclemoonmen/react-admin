@@ -16,16 +16,28 @@ import { getLogs } from "~/services/log";
 import { useState } from "react";
 import LogDetailsDrawer from "~/routes/sys/log/components/LogDetailsDrawer";
 import { EyeOutlined } from "@ant-design/icons";
+import type { OperationLog } from "~/types/api";
+import { requireApiSuccess } from "~/services/http";
+
+interface LogQueryForm extends Record<string, unknown> {
+  keyword?: string;
+  status?: string;
+  createdAtRange?: unknown[];
+}
 
 const { RangePicker } = DatePicker;
 
 export async function clientLoader({ request }: Route.ClientLoaderArgs) {
   const url = new URL(request.url);
-  return await getLogs(url.search);
+  const result = await getLogs(url.search);
+  if (result.code !== 0) {
+    throw new Response(result.msg || "日志列表加载失败", { status: 500 });
+  }
+  return requireApiSuccess(result);
 }
 
 export default function Index() {
-  const columns: TableProps["columns"] = [
+  const columns: TableProps<OperationLog>["columns"] = [
     {
       title: "所属功能",
       dataIndex: "module",
@@ -74,19 +86,21 @@ export default function Index() {
           size="small"
           type="text"
           icon={<EyeOutlined />}
+          aria-label="查看日志详情"
+          title="查看详情"
         />
       ),
     },
   ];
 
   const { form, formInitialValues, handleSearch, handleReset, onPageChange } =
-    useTableQuery<any>({
+    useTableQuery<LogQueryForm>({
       dateFields: ["createdAtRange"],
     });
   const [active, setActive] = useState(false);
-  const [record, setRecord] = useState({});
+  const [record, setRecord] = useState<OperationLog | null>(null);
   const navigation = useNavigation();
-  const { data } = useLoaderData();
+  const data = useLoaderData<typeof clientLoader>();
   return (
     <>
       <div className="mb-6">

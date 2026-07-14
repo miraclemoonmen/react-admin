@@ -1,9 +1,10 @@
 import { http } from "~/services/http";
+import type { PageResult, ReportRecord } from "~/types/api";
 
 export const getReports = (params: string) =>
-  http("/reports", { method: "GET", params });
+  http<PageResult<ReportRecord>>("/reports", { method: "GET", params });
 
-export const getReport = (id: string) => http(`/reports/${id}`);
+export const getReport = (id: string) => http<ReportRecord>(`/reports/${id}`);
 
 export const decideReport = (
   id: string,
@@ -12,4 +13,4 @@ export const decideReport = (
     action: "NONE" | "REMOVE_CONTENT" | "DISABLE_USER";
     reviewNote?: string;
   },
-) => http(`/reports/${id}/decision`, { method: "PUT", data });
+) => http<null>(`/reports/${id}/decision`, { method: "PUT", data });

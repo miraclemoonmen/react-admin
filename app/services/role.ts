@@ -1,39 +1,44 @@
 import { http } from "~/services/http";
+import type {
+  PermissionTemplate,
+  Role,
+  RoleMutationInput,
+} from "~/types/api";
 
 export async function getRoleList() {
-  return http(`/roles`, {
+  return http<Role[]>(`/roles`, {
     method: "GET",
   });
 }
 
-export async function addRole(data) {
-  return http(`/roles`, {
+export async function addRole(data: RoleMutationInput) {
+  return http<boolean>(`/roles`, {
     method: "POST",
     data,
   });
 }
 
 export async function getPermissionList() {
-  return http(`/permissions`, {
+  return http<PermissionTemplate[]>(`/permissions`, {
     method: "GET",
   });
 }
 
 export async function getMenuIdsByRoleId(id: number) {
-  return http(`/roles/${id}/permissions`, {
+  return http<number[]>(`/roles/${id}/permissions`, {
     method: "GET",
   });
 }
 
-export async function updateRolePermissions(data) {
-  return http(`/roles/${data.id}`, {
+export async function updateRolePermissions(data: RoleMutationInput & { id: number }) {
+  return http<boolean>(`/roles/${data.id}`, {
     method: "PUT",
     data,
   });
 }
 
-export async function removeRole(id) {
-  return http(`/roles/${id}`, {
+export async function removeRole(id: number) {
+  return http<boolean>(`/roles/${id}`, {
     method: "DELETE"
   });
 }

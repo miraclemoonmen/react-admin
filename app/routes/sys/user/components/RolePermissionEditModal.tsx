@@ -7,20 +7,14 @@ import {
 import { useEffect, useState } from "react";
 import { useRoleStore } from "~/stores/useRoleStore";
 import { useRevalidator } from "react-router";
+import type { PermissionTemplate, Role, RoleMutationInput } from "~/types/api";
+import { getErrorMessage } from "~/utils/errors";
+import { requireApiSuccess } from "~/services/http";
 
 interface Props {
   open: boolean;
-  data: any;
+  data: Role | null;
   onClose: () => void;
-}
-
-interface PermissionTemplate {
-  id: number;
-  name: string;
-  actions: {
-    id: number;
-    name: string;
-  }[];
 }
 
 export default function RolePermissionEditModal({
@@ -32,33 +26,45 @@ export default function RolePermissionEditModal({
     [],
   );
   const [selectedKeys, setSelectedKeys] = useState<number[]>([]);
-  const [form] = Form.useForm();
+  const [form] = Form.useForm<Omit<RoleMutationInput, "permissions">>();
+  const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState("");
   const revalidator = useRevalidator();
   useEffect(() => {
-    if (open) {
+    if (open && data) {
+      setLoadError("");
       Promise.all([getPermissionList(), getMenuIdsByRoleId(data.id)]).then(
-        ([{ data: tplData }, { data: perData }]) => {
+        ([templateResult, permissionResult]) => {
+          const tplData = requireApiSuccess(templateResult);
+          const perData = requireApiSuccess(permissionResult);
           setPermissionTree(tplData);
           setSelectedKeys(perData);
           form.setFieldsValue(data);
         },
-      );
+      ).catch(error => setLoadError(getErrorMessage(error, "角色权限加载失败")));
     }
   }, [data, form, open]);
 
   const obSubmit = async () => {
-    await form.validateFields();
-    const values = await form.validateFields();
-    const { code, msg } = await updateRolePermissions({
-      id: data?.id,
-      ...values,
-      permissions: selectedKeys,
-    });
-    message[code === 0 ? "success" : "error"](msg);
-    if (code === 0) {
-      onClose();
-      useRoleStore.getState().reset();
-      await revalidator.revalidate();
+    if (!data) return;
+    setLoading(true);
+    try {
+      const values = await form.validateFields();
+      const { code, msg } = await updateRolePermissions({
+        id: data.id,
+        ...values,
+        permissions: selectedKeys,
+      });
+      message[code === 0 ? "success" : "error"](msg);
+      if (code === 0) {
+        onClose();
+        useRoleStore.getState().reset();
+        await revalidator.revalidate();
+      }
+    } catch (error) {
+      message.error(getErrorMessage(error, "角色权限保存失败"));
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -83,13 +89,14 @@ export default function RolePermissionEditModal({
       footer={
         <div className="flex justify-center gap-4 pb-4">
           <Button onClick={onClose}>取消</Button>
-          <Button onClick={obSubmit} type="primary">
+          <Button loading={loading} onClick={obSubmit} type="primary">
             确定
           </Button>
         </div>
       }
     >
       <section>
+        {loadError && <p role="alert" className="mb-4 text-sm text-red-600">{loadError}</p>}
         <h3 className="text-lg font-bold text-[#4A4A65]">基本信息</h3>
         <Form
           form={form}

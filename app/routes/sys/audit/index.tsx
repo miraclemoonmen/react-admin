@@ -19,18 +19,33 @@ import type { Route } from "./+types";
 import { decideAudit, getAuditRecord } from "~/services/audit";
 import { useState } from "react";
 import AuditDetailsDrawer from "~/routes/sys/audit/components/AuditDetailsDrawer";
-import { http } from "~/services/http";
+import { http, requireApiSuccess } from "~/services/http";
+import type {
+  AuditRecord,
+  CommentRecord,
+  PostRecord,
+} from "~/types/api";
+import { isFormValidationError } from "~/utils/errors";
 
 interface SelectedPostAudit {
   auditId: number;
   status: number;
-  detail: Record<string, any>;
-  auditMeta: Record<string, any>;
+  detail: PostRecord | CommentRecord;
+  auditMeta: AuditRecord;
+}
+
+interface AuditQueryForm extends Record<string, unknown> {
+  status?: string;
+  createdAtRange?: unknown[];
 }
 
 export async function clientLoader({ request }: Route.ClientLoaderArgs) {
   const url = new URL(request.url);
-  return await getAuditRecord(url.search);
+  const result = await getAuditRecord(url.search);
+  if (result.code !== 0) {
+    throw new Response(result.msg || "审核列表加载失败", { status: 500 });
+  }
+  return requireApiSuccess(result);
 }
 
 export default function Index() {
@@ -60,8 +75,8 @@ export default function Index() {
       } else {
         message.error(msg || "驳回失败");
       }
-    } catch (error: any) {
-      if (!error?.errorFields) {
+    } catch (error: unknown) {
+      if (!isFormValidationError(error)) {
         message.error("驳回失败，请稍后重试");
       }
     } finally {
@@ -69,7 +84,7 @@ export default function Index() {
     }
   };
 
-  const columns: TableProps["columns"] = [
+  const columns: TableProps<AuditRecord>["columns"] = [
     {
       title: "发布者",
       dataIndex: "creator",
@@ -122,23 +137,30 @@ export default function Index() {
             return (
               <Button
                 onClick={async () => {
-                  const { data, code, msg } = await http(
-                    `/auditRecord/posts/${record.bizId}`,
-                  );
-                  if (code === 0) {
-                    setSelectedPostAudit({
-                      auditId: record.id,
-                      status: record.status,
-                      detail: data,
-                      auditMeta: record,
-                    });
-                  } else {
-                    message["error"](msg);
+                  try {
+                    const { data, code, msg } = await http<PostRecord>(
+                      `/auditRecord/posts/${record.bizId}`,
+                    );
+                    if (code === 0) {
+                      const detail = requireApiSuccess({ code, data, msg });
+                      setSelectedPostAudit({
+                        auditId: record.id,
+                        status: record.status,
+                        detail,
+                        auditMeta: record,
+                      });
+                    } else {
+                      message.error(msg || "帖子详情加载失败");
+                    }
+                  } catch {
+                    message.error("帖子详情加载失败，请稍后重试");
                   }
                 }}
                 size="small"
                 type="text"
                 icon={<EyeOutlined />}
+                aria-label="查看帖子审核详情"
+                title="查看详情"
               />
             );
           case 2:
@@ -146,14 +168,15 @@ export default function Index() {
               <Button
                 onClick={async () => {
                   try {
-                    const { data, code, msg } = await http(
+                    const { data, code, msg } = await http<CommentRecord>(
                       `/auditRecord/comments/${record.bizId}`,
                     );
                     if (code === 0) {
+                      const detail = requireApiSuccess({ code, data, msg });
                       setSelectedPostAudit({
                         auditId: record.id,
                         status: record.status,
-                        detail: data,
+                        detail,
                         auditMeta: record,
                       });
                     } else {
@@ -166,6 +189,8 @@ export default function Index() {
                 size="small"
                 type="text"
                 icon={<EyeOutlined />}
+                aria-label="查看评论审核详情"
+                title="查看详情"
               />
             );
           case 3:
@@ -176,17 +201,19 @@ export default function Index() {
                 size="small"
                 type="text"
                 icon={<EyeOutlined />}
+                aria-label="查看待审核图片"
+                title="查看图片"
               />
             );
         }
       },
     },
   ];
-  const { data } = useLoaderData();
+  const data = useLoaderData<typeof clientLoader>();
 
   const navigation = useNavigation();
   const { form, formInitialValues, handleSearch, handleReset, onPageChange } =
-    useTableQuery<any>({
+    useTableQuery<AuditQueryForm>({
       dateFields: ["createdAtRange"],
     });
 
@@ -249,12 +276,12 @@ export default function Index() {
             onChange: (p, ps) => onPageChange(p, ps),
           }}
         />
-        <AuditDetailsDrawer
+        {selectedPostAudit && <AuditDetailsDrawer
           auditId={selectedPostAudit?.auditId ?? -1}
           status={selectedPostAudit?.status ?? null}
-          record={selectedPostAudit?.detail ?? {}}
-          auditMeta={selectedPostAudit?.auditMeta}
-          open={selectedPostAudit !== null}
+          record={selectedPostAudit.detail}
+          auditMeta={selectedPostAudit.auditMeta}
+          open
           onClose={() => setSelectedPostAudit(null)}
           onApproved={async () => {
             setSelectedPostAudit(null);
@@ -263,7 +290,7 @@ export default function Index() {
           onRejectRequest={() => {
             if (selectedPostAudit) setRejectingId(selectedPostAudit.auditId);
           }}
-        />
+        />}
         <Modal
           title="驳回审核"
           open={rejectingId !== null}

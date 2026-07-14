@@ -5,11 +5,12 @@ import {
   Drawer,
   Typography,
 } from "antd";
+import type { OperationLog } from "~/types/api";
 const { Text } = Typography;
 interface Props {
   open: boolean;
   onClose: () => void;
-  data: any;
+  data: OperationLog | null;
 }
 export default function LogDetailsDrawer({ open, onClose, data }: Props) {
   if (!data) return null;

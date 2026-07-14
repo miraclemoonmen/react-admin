@@ -14,23 +14,31 @@ import { useRevalidator } from "react-router";
 import { update } from "~/services/user";
 import { useEffect } from "react";
 import { useRoleStore } from "~/stores/useRoleStore";
+import type { ConsoleUser, UserMutationInput } from "~/types/api";
 
 interface Props {
   open: boolean;
   onClose: () => void;
-  initialValues: Record<string, unknown>;
+  initialValues: ConsoleUser | null;
 }
 
 export default function UserAddDrawer({ open, onClose, initialValues }: Props) {
-  const [form] = Form.useForm();
+  const [form] = Form.useForm<UserMutationInput>();
   useEffect(() => {
-    if (open) {
-      form.setFieldsValue(initialValues);
+    if (open && initialValues) {
+      form.setFieldsValue({
+        ...initialValues,
+        email: initialValues.email ?? undefined,
+        phone: initialValues.phone ?? undefined,
+        gender: initialValues.gender ?? undefined,
+        remark: initialValues.remark ?? undefined,
+      });
     }
   }, [open, initialValues, form]);
   const revalidator = useRevalidator();
-  const onFinish = async (values: any) => {
-    const { msg, code } = await update({ id: initialValues?.id, ...values });
+  const onFinish = async (values: UserMutationInput) => {
+    if (!initialValues) return;
+    const { msg, code } = await update({ id: initialValues.id, ...values });
     if (code === 0) {
       onClose();
       useRoleStore.getState().reset();

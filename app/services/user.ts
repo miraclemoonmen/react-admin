@@ -1,41 +1,47 @@
 import { http } from "~/services/http";
+import type {
+  ConsoleUser,
+  PageResult,
+  QueryParams,
+  UserMutationInput,
+} from "~/types/api";
 
-export function login(data: any) {
-  return http("/login", {
+export function login(data: FormData) {
+  return http<string>("/login", {
     method: "POST",
     data,
   });
 }
 
 export function logout() {
-  return http("/logout", {
+  return http<string>("/logout", {
     method: "POST",
   });
 }
 
-export async function getUsers(params: any) {
-  return http(`/users`, {
+export async function getUsers(params: QueryParams) {
+  return http<PageResult<ConsoleUser>>(`/users`, {
     method: "GET",
     params,
   });
 }
 
-export async function create(data: any) {
-  return http(`/users`, {
+export async function create(data: UserMutationInput) {
+  return http<boolean>(`/users`, {
     method: "POST",
     data,
   });
 }
 
-export async function update(data: any) {
-  return http(`/users/${data.id}`, {
+export async function update(data: UserMutationInput & { id: string }) {
+  return http<boolean>(`/users/${data.id}`, {
     method: "PATCH",
     data,
   });
 }
 
-export async function remove(data: any) {
-  return http(`/users/${data.id}`, {
+export async function remove(data: { id: string }) {
+  return http<boolean>(`/users/${data.id}`, {
     method: "DELETE",
   });
 }

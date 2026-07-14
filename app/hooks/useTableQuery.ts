@@ -9,19 +9,22 @@ interface QueryConfig {
   numberFields?: string[];
 }
 
-export function useTableQuery<T extends object>(config: QueryConfig = {}) {
+export function useTableQuery<T extends Record<string, unknown>>(config: QueryConfig = {}) {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [form] = Form.useForm();
+  const [form] = Form.useForm<T>();
   const { dateFields = [], numberFields = [] } = config;
   const formInitialValues = () => {
-    const values = qs.parse(searchParams.toString(), {
+    const values: Record<string, unknown> = { ...qs.parse(searchParams.toString(), {
       ignoreQueryPrefix: true,
-    }) as any;
+    }) };
 
     dateFields.forEach(field => {
       const dates = values[field];
       if (Array.isArray(dates) && dates.length === 2) {
-        values[field] = [dayjs(dates[0]), dayjs(dates[1])];
+        const [from, to] = dates;
+        if (typeof from === "string" && typeof to === "string") {
+          values[field] = [dayjs(from), dayjs(to)];
+        }
       }
     });
     numberFields.forEach(field => {
@@ -39,15 +42,25 @@ export function useTableQuery<T extends object>(config: QueryConfig = {}) {
   };
 
   const { run: handleSearch } = useDebounceFn(
-    values => {
-      const formattedValues = { ...values };
+    (values: T) => {
+      const formattedValues: Record<string, unknown> = { ...values };
       dateFields.forEach(key => {
         const val = values[key];
         if (Array.isArray(val) && val.length === 2) {
-          formattedValues[key] = [
-            val[0].toISOString(),
-            val[1].endOf("d").toISOString(),
-          ];
+          const [from, to] = val;
+          if (
+            from &&
+            to &&
+            typeof from === "object" &&
+            typeof to === "object" &&
+            "toISOString" in from &&
+            "endOf" in to &&
+            typeof from.toISOString === "function" &&
+            typeof to.endOf === "function"
+          ) {
+            const endOfDay = to.endOf("d") as { toISOString(): string };
+            formattedValues[key] = [from.toISOString(), endOfDay.toISOString()];
+          }
         }
       });
       const queryString = qs.stringify(

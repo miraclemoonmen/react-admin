@@ -9,6 +9,11 @@ import {
 } from "antd";
 import { useState } from "react";
 import { decideAudit } from "~/services/audit";
+import type {
+  AuditRecord,
+  CommentRecord,
+  PostRecord,
+} from "~/types/api";
 const endpoint = import.meta.env.VITE_MINIO_ENDPOINT;
 const bucket = import.meta.env.VITE_BUCKET_POSTS;
 const reasonLabels: Record<string, string> = {
@@ -25,8 +30,8 @@ interface Props {
   onClose: () => void;
   onApproved: () => Promise<void>;
   onRejectRequest: () => void;
-  auditMeta?: Record<string, any>;
-  record: Record<string, any>;
+  auditMeta: AuditRecord;
+  record: PostRecord | CommentRecord;
 }
 export default function AuditDetailsDrawer({
   auditId,
@@ -39,6 +44,11 @@ export default function AuditDetailsDrawer({
   record,
 }: Props) {
   const [loading, setLoading] = useState(false);
+  const isPost = "images" in record;
+  const title = isPost ? record.title : record.postTitle;
+  const poiName = isPost ? record.poiName : null;
+  const replyToUsername = isPost ? null : record.replyToUsername;
+  const images = isPost ? record.images : [];
   const items: DescriptionsProps["items"] = [
     {
       key: "status",
@@ -56,10 +66,8 @@ export default function AuditDetailsDrawer({
     },
     {
       key: "title",
-      label: record.postTitle ? "所属帖子" : "标题",
-      children: (
-        <p className="font-medium">{record.title || record.postTitle || "-"}</p>
-      ),
+      label: isPost ? "标题" : "所属帖子",
+      children: <p className="font-medium">{title || "-"}</p>,
     },
     ...(auditMeta?.rejectReasonCode
       ? [
@@ -93,19 +101,19 @@ export default function AuditDetailsDrawer({
     {
       key: "poiName",
       label: "地点",
-      children: <p>{record.poiName || "-"}</p>,
+      children: <p>{poiName || "-"}</p>,
     },
     {
       key: "content",
       label: "内容",
       children: <p>{record.content || "-"}</p>,
     },
-    ...(record.replyToUsername
+    ...(replyToUsername
       ? [
           {
             key: "replyToUsername",
             label: "回复对象",
-            children: `@${record.replyToUsername}`,
+            children: `@${replyToUsername}`,
           },
         ]
       : []),
@@ -129,9 +137,9 @@ export default function AuditDetailsDrawer({
       children: record.createdAt,
     },
   ];
-  if (record.images?.length > 0) {
+  if (images.length > 0) {
     items.push(
-      ...(record.images.map(i => ({
+      ...images.map(i => ({
         key: i.id,
         label: "附件",
         children: (
@@ -142,7 +150,7 @@ export default function AuditDetailsDrawer({
             src={`${endpoint}/${bucket}/${i.path}`}
           />
         ),
-      })) ?? []),
+      })),
     );
   }
   return (

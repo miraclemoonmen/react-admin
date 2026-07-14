@@ -35,11 +35,11 @@ export default function Login() {
 
   return (
     <main
-      className="min-h-screen grid bg-cover bg-center"
+      className="grid min-h-dvh bg-cover bg-center p-4 lg:p-8"
       style={{ backgroundImage: `url(${loginBg})` }}
     >
-      <section className="grid w-300 h-170 items-center self-center justify-self-center grid-cols-2 rounded-2xl shadow-2xl overflow-hidden">
-        <aside className="relative h-full w-full bg-linear-to-br from-blue-500 to-blue-700 text-white p-12">
+      <section className="grid min-h-[520px] w-full max-w-[1200px] self-center justify-self-center overflow-hidden rounded-2xl bg-white shadow-2xl lg:h-[680px] lg:grid-cols-2">
+        <aside className="relative hidden h-full w-full bg-linear-to-br from-blue-500 to-blue-700 p-12 text-white lg:block" aria-hidden="true">
           <div className="absolute top-20 left-20 w-64 bg-white text-slate-800 rounded-xl shadow-xl p-4 -rotate-6">
             <div className="h-28 bg-yellow-200 rounded-lg mb-3"></div>
             <h4 className="text-sm font-semibold mb-2">
@@ -78,7 +78,7 @@ export default function Login() {
             </p>
           </div>
         </aside>
-        <section className="h-full flex flex-col justify-center px-16 bg-white">
+        <section className="flex h-full flex-col justify-center bg-white px-7 py-12 sm:px-14 lg:px-16">
           <h1 className="text-2xl font-semibold text-slate-800">
             欢迎回到 WinRide
           </h1>
@@ -96,7 +96,12 @@ export default function Login() {
               name="username"
               rules={[{ required: true, message: "用户名不能为空" }]}
             >
-              <Input autoComplete="username" placeholder="用户名" />
+              <Input
+                aria-label="用户名"
+                autoComplete="username"
+                maxLength={254}
+                placeholder="用户名"
+              />
             </Form.Item>
 
             <Form.Item<FieldType>
@@ -104,7 +109,9 @@ export default function Login() {
               rules={[{ required: true, message: "密码不能为空" }]}
             >
               <Input.Password
+                aria-label="密码"
                 autoComplete="current-password"
+                maxLength={72}
                 placeholder="密码"
               />
             </Form.Item>

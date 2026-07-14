@@ -14,34 +14,54 @@ import {
 } from "antd";
 import { EyeOutlined } from "@ant-design/icons";
 import { useLoaderData, useNavigation, useRevalidator } from "react-router";
+import { requireApiSuccess } from "~/services/http";
 import { useState } from "react";
 import type { Route } from "./+types";
 import { useTableQuery } from "~/hooks/useTableQuery";
 import { decideReport, getReport, getReports } from "~/services/report";
+import type { ReportRecord } from "~/types/api";
+import { getErrorMessage, isFormValidationError } from "~/utils/errors";
 
 const { RangePicker } = DatePicker;
 
-const TYPE_LABELS = { POST: "帖子", COMMENT: "评论", USER: "用户" };
-const REASON_LABELS = {
+const TYPE_LABELS: Record<ReportRecord["targetType"], string> = { POST: "帖子", COMMENT: "评论", USER: "用户" };
+const REASON_LABELS: Record<string, string> = {
   SPAM: "广告或垃圾信息", ABUSE: "辱骂或骚扰", PORNOGRAPHY: "色情低俗",
   PRIVACY: "侵犯隐私", ILLEGAL: "违法违规", OTHER: "其他问题",
 };
-const ACTION_LABELS = { NONE: "未执行处置", REMOVE_CONTENT: "下架内容", DISABLE_USER: "禁用账号" };
+const ACTION_LABELS: Record<string, string> = { NONE: "未执行处置", REMOVE_CONTENT: "下架内容", DISABLE_USER: "禁用账号" };
+
+type ReportAction = "NONE" | "REMOVE_CONTENT" | "DISABLE_USER";
+interface ReportDecisionForm {
+  decision: "RESOLVE" | "DISMISS";
+  action: ReportAction;
+  reviewNote?: string;
+}
+interface ReportQueryForm extends Record<string, unknown> {
+  status?: string;
+  targetType?: string;
+  reasonCode?: string;
+  createdAtRange?: unknown[];
+}
 
 export async function clientLoader({ request }: Route.ClientLoaderArgs) {
-  return getReports(new URL(request.url).search);
+  const result = await getReports(new URL(request.url).search);
+  if (result.code !== 0) {
+    throw new Response(result.msg || "举报列表加载失败", { status: 500 });
+  }
+  return requireApiSuccess(result);
 }
 
 export default function ReportWorkbench() {
-  const { data } = useLoaderData<typeof clientLoader>();
+  const data = useLoaderData<typeof clientLoader>();
   const navigation = useNavigation();
   const revalidator = useRevalidator();
-  const [selected, setSelected] = useState<Record<string, any> | null>(null);
+  const [selected, setSelected] = useState<ReportRecord | null>(null);
   const [handling, setHandling] = useState(false);
-  const [form] = Form.useForm();
-  const { form: filterForm, formInitialValues, handleSearch, handleReset, onPageChange } = useTableQuery({ dateFields: ["createdAtRange"] });
+  const [form] = Form.useForm<ReportDecisionForm>();
+  const { form: filterForm, formInitialValues, handleSearch, handleReset, onPageChange } = useTableQuery<ReportQueryForm>({ dateFields: ["createdAtRange"] });
 
-  const confirmDestructiveAction = (action: string) => new Promise<boolean>(resolve => {
+  const confirmDestructiveAction = (action: ReportAction) => new Promise<boolean>(resolve => {
     if (!['REMOVE_CONTENT', 'DISABLE_USER'].includes(action)) {
       resolve(true);
       return;
@@ -76,16 +96,18 @@ export default function ReportWorkbench() {
       setSelected(null);
       form.resetFields();
       await revalidator.revalidate();
-    } catch (error: any) {
-      if (!error?.errorFields) message.error(error?.message || "处理失败，请稍后重试");
+    } catch (error: unknown) {
+      if (!isFormValidationError(error)) {
+        message.error(getErrorMessage(error, "处理失败，请稍后重试"));
+      }
     } finally {
       setHandling(false);
     }
   };
 
-  const columns: TableProps["columns"] = [
+  const columns: TableProps<ReportRecord>["columns"] = [
     { title: "举报人", dataIndex: "reporterName", width: 130 },
-    { title: "对象", dataIndex: "targetType", width: 90, render: value => TYPE_LABELS[value] || value },
+    { title: "对象", dataIndex: "targetType", width: 90, render: (value: ReportRecord["targetType"]) => TYPE_LABELS[value] || value },
     { title: "目标摘要", dataIndex: "targetSummary", ellipsis: true },
     { title: "目标作者", dataIndex: "targetAuthorName", width: 130, render: value => value || "已不存在" },
     { title: "原因", dataIndex: "reasonCode", width: 140, render: value => <Tag>{REASON_LABELS[value] || value}</Tag> },
@@ -97,8 +119,8 @@ export default function ReportWorkbench() {
         if (result.code !== 0) throw new Error(result.msg || "详情加载失败");
         setSelected(result.data);
         form.setFieldsValue({ decision: "RESOLVE", action: record.targetType === "USER" ? "DISABLE_USER" : "REMOVE_CONTENT" });
-      } catch (error: any) { message.error(error?.message || "详情加载失败"); }
-    }} /> },
+      } catch (error: unknown) { message.error(getErrorMessage(error, "详情加载失败")); }
+    }} aria-label="查看举报详情" title="查看详情" /> },
   ];
 
   return <>
@@ -125,7 +147,7 @@ export default function ReportWorkbench() {
           { key: "summary", label: "目标摘要", span: 2, children: selected.targetSummary },
           { key: "description", label: "补充说明", span: 2, children: selected.description || "无" },
           ...(selected.status !== -1 ? [
-            { key: "action", label: "处置动作", children: ACTION_LABELS[selected.action] || selected.action },
+            { key: "action", label: "处置动作", children: selected.action ? ACTION_LABELS[selected.action] || selected.action : "-" },
             { key: "reviewer", label: "处理人", children: selected.reviewerName || "-" },
             { key: "note", label: "处理备注", span: 2, children: selected.reviewNote || "无" },
           ] : []),

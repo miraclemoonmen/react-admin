@@ -28,18 +28,13 @@ import { useTableQuery } from "~/hooks/useTableQuery";
 import RoleCars from "~/routes/sys/user/components/RoleCards";
 import { useRoleStore } from "~/stores/useRoleStore";
 import type { Route } from "./+types";
+import type { ConsoleUser } from "~/types/api";
+import { requireApiSuccess } from "~/services/http";
 
-interface DataType {
-  id: string;
-  name: string;
-  createTime: string;
-  roles: [];
-}
-
-interface FormValues {
-  name?: string;
-  status?: number;
-  createTimeRange?: [Dayjs, Dayjs];
+interface FormValues extends Record<string, unknown> {
+  keyword?: string;
+  roles?: number[];
+  createdAtRange?: [Dayjs, Dayjs];
 }
 
 export async function clientLoader({ request }: Route.ActionArgs) {
@@ -49,9 +44,12 @@ export async function clientLoader({ request }: Route.ActionArgs) {
     useRoleStore.getState().getAllRoles(),
     getUsers(url.search),
   ]);
+  if (usersRes.code !== 0) {
+    throw new Response(usersRes.msg || "用户列表加载失败", { status: 500 });
+  }
   return {
     roles: rolesRes,
-    users: usersRes.data,
+    users: requireApiSuccess(usersRes),
   };
 }
 
@@ -60,9 +58,9 @@ export default function User() {
     userAdd: false,
     userEdit: false,
   });
-  const [currentRecord, setCurrentRecord] = useState<any>(null);
+  const [currentRecord, setCurrentRecord] = useState<ConsoleUser | null>(null);
   const revalidator = useRevalidator();
-  const columns: TableProps<DataType>["columns"] = [
+  const columns: TableProps<ConsoleUser>["columns"] = [
     {
       title: "用户名",
       dataIndex: "username",
@@ -77,7 +75,7 @@ export default function User() {
       render: (_, record) => (
         <Flex gap="small" align="center" wrap>
           {record.roles.map(item => (
-            <Tag key={item}>{useRoleStore.getState().rolesMap[item]}</Tag>
+            <Tag key={item}>{useRoleStore.getState().rolesMap?.[item] ?? `角色 ${item}`}</Tag>
           ))}
         </Flex>
       ),
@@ -103,6 +101,8 @@ export default function User() {
             }}
             type="text"
             icon={<EditOutlined />}
+            aria-label={`编辑用户 ${record.username}`}
+            title="编辑"
           />
           <Popconfirm
             placement="topRight"
@@ -126,6 +126,8 @@ export default function User() {
               size="small"
               type="text"
               icon={<DeleteTwoTone twoToneColor="#ff4d4f" />}
+              aria-label={`删除用户 ${record.username}`}
+              title="删除"
             />
           </Popconfirm>
         </Space>
@@ -139,7 +141,7 @@ export default function User() {
       numberFields: ["roles"],
     });
 
-  const { users } = useLoaderData() as any;
+  const { users } = useLoaderData<typeof clientLoader>();
 
   return (
     <>
@@ -205,7 +207,7 @@ export default function User() {
             />
           </Flex>
         </header>
-        <Table<DataType>
+        <Table<ConsoleUser>
           loading={{
             spinning: navigation.state === "loading",
             delay: 150,
