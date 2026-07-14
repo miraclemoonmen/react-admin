@@ -18,3 +18,16 @@ export async function approvePostAudit(auditId: number) {
     method: "PUT",
   });
 }
+
+export type AuditDecision = {
+  decision: "APPROVE" | "REJECT";
+  reasonCode?: string;
+  note?: string;
+};
+
+export async function decideAudit(auditId: number, decision: AuditDecision) {
+  return http(`/auditRecord/${auditId}/decision`, {
+    method: "PUT",
+    data: decision,
+  });
+}

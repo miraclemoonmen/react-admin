@@ -4,18 +4,21 @@ import {
   DatePicker,
   Flex,
   Form,
+  Input,
   message,
+  Modal,
   Popconfirm,
   Select,
+  Space,
   Table,
   type TableProps,
 } from "antd";
 const { RangePicker } = DatePicker;
 import { useTableQuery } from "~/hooks/useTableQuery";
 import { useLoaderData, useNavigation, useRevalidator } from "react-router";
-import { CheckOutlined, EyeOutlined } from "@ant-design/icons";
+import { CheckOutlined, CloseOutlined, EyeOutlined } from "@ant-design/icons";
 import type { Route } from "./+types";
-import { approveCommentAudit, getAuditRecord } from "~/services/audit";
+import { decideAudit, getAuditRecord } from "~/services/audit";
 import { useState } from "react";
 import AuditDetailsDrawer from "~/routes/sys/audit/components/AuditDetailsDrawer";
 import { http } from "~/services/http";
@@ -24,6 +27,7 @@ interface SelectedPostAudit {
   auditId: number;
   status: number;
   detail: Record<string, any>;
+  auditMeta: Record<string, any>;
 }
 
 export async function clientLoader({ request }: Route.ClientLoaderArgs) {
@@ -35,12 +39,15 @@ export default function Index() {
   const [selectedPostAudit, setSelectedPostAudit] =
     useState<SelectedPostAudit | null>(null);
   const [approvingId, setApprovingId] = useState<number | null>(null);
+  const [rejectingId, setRejectingId] = useState<number | null>(null);
+  const [rejectLoading, setRejectLoading] = useState(false);
+  const [rejectForm] = Form.useForm();
   const revalidator = useRevalidator();
 
-  const handleApproveComment = async (id: number) => {
+  const handleApprove = async (id: number) => {
     setApprovingId(id);
     try {
-      const { code, msg } = await approveCommentAudit(id);
+      const { code, msg } = await decideAudit(id, { decision: "APPROVE" });
       if (code === 0) {
         message.success(msg || "审核通过");
         await revalidator.revalidate();
@@ -51,6 +58,34 @@ export default function Index() {
       message.error("审核失败，请稍后重试");
     } finally {
       setApprovingId(null);
+    }
+  };
+
+  const handleReject = async () => {
+    if (rejectingId == null) return;
+    try {
+      const values = await rejectForm.validateFields();
+      setRejectLoading(true);
+      const { code, msg } = await decideAudit(rejectingId, {
+        decision: "REJECT",
+        reasonCode: values.reasonCode,
+        note: values.note?.trim() || undefined,
+      });
+      if (code === 0) {
+        message.success(msg || "已驳回");
+        setRejectingId(null);
+        setSelectedPostAudit(null);
+        rejectForm.resetFields();
+        await revalidator.revalidate();
+      } else {
+        message.error(msg || "驳回失败");
+      }
+    } catch (error: any) {
+      if (!error?.errorFields) {
+        message.error("驳回失败，请稍后重试");
+      }
+    } finally {
+      setRejectLoading(false);
     }
   };
 
@@ -81,12 +116,18 @@ export default function Index() {
     {
       title: "执行结果",
       dataIndex: "status",
-      render: (_, record) =>
-        record.status === 0 ? (
-          <Badge status="success" text="通过" />
-        ) : (
-          <Badge status="error" text="未通过" />
-        ),
+      render: (_, record) => {
+        switch (record.status) {
+          case -1:
+            return <Badge status="processing" text="待审核" />;
+          case 0:
+            return <Badge status="success" text="已通过" />;
+          case 1:
+            return <Badge status="error" text="已驳回" />;
+          default:
+            return <Badge status="default" text="已取消" />;
+        }
+      },
     },
     {
       title: "时间",
@@ -109,6 +150,7 @@ export default function Index() {
                       auditId: record.id,
                       status: record.status,
                       detail: data,
+                      auditMeta: record,
                     });
                   } else {
                     message["error"](msg);
@@ -124,22 +166,33 @@ export default function Index() {
               return null;
             }
             return (
-              <Popconfirm
-                title="确认通过该评论？"
-                description="通过后评论将公开显示。"
-                okText="通过"
-                cancelText="取消"
-                onConfirm={() => handleApproveComment(record.id)}
-              >
+              <Space size="small">
                 <Button
-                  loading={approvingId === record.id}
+                  danger
                   size="small"
                   type="text"
-                  icon={<CheckOutlined />}
+                  icon={<CloseOutlined />}
+                  onClick={() => setRejectingId(record.id)}
                 >
-                  通过
+                  驳回
                 </Button>
-              </Popconfirm>
+                <Popconfirm
+                  title="确认通过该评论？"
+                  description="通过后评论将公开显示。"
+                  okText="通过"
+                  cancelText="取消"
+                  onConfirm={() => handleApprove(record.id)}
+                >
+                  <Button
+                    loading={approvingId === record.id}
+                    size="small"
+                    type="text"
+                    icon={<CheckOutlined />}
+                  >
+                    通过
+                  </Button>
+                </Popconfirm>
+              </Space>
             );
           case 3:
             return (
@@ -187,8 +240,10 @@ export default function Index() {
                 style={{ width: 120 }}
                 allowClear
                 options={[
-                  { value: "0", label: "通过" },
-                  { value: "-1", label: "未通过" },
+                  { value: "-1", label: "待审核" },
+                  { value: "0", label: "已通过" },
+                  { value: "1", label: "已驳回" },
+                  { value: "2", label: "已取消" },
                 ]}
               />
             </Form.Item>
@@ -224,13 +279,73 @@ export default function Index() {
           auditId={selectedPostAudit?.auditId ?? -1}
           status={selectedPostAudit?.status ?? null}
           record={selectedPostAudit?.detail ?? {}}
+          auditMeta={selectedPostAudit?.auditMeta}
           open={selectedPostAudit !== null}
           onClose={() => setSelectedPostAudit(null)}
           onApproved={async () => {
             setSelectedPostAudit(null);
             await revalidator.revalidate();
           }}
+          onRejectRequest={() => {
+            if (selectedPostAudit) setRejectingId(selectedPostAudit.auditId);
+          }}
         />
+        <Modal
+          title="驳回审核"
+          open={rejectingId !== null}
+          okText="确认驳回"
+          cancelText="取消"
+          okButtonProps={{ danger: true, loading: rejectLoading }}
+          onOk={handleReject}
+          onCancel={() => {
+            setRejectingId(null);
+            rejectForm.resetFields();
+          }}
+        >
+          <Form form={rejectForm} layout="vertical" className="mt-5">
+            <Form.Item
+              name="reasonCode"
+              label="驳回原因"
+              rules={[{ required: true, message: "请选择驳回原因" }]}
+            >
+              <Select
+                placeholder="选择原因"
+                options={[
+                  { value: "SENSITIVE_TEXT", label: "文字内容不合规" },
+                  { value: "IMAGE_RISK", label: "图片内容不合规" },
+                  { value: "ADVERTISING", label: "广告或推广内容" },
+                  { value: "IRRELEVANT", label: "内容与主题无关" },
+                  { value: "OTHER", label: "其他原因" },
+                ]}
+              />
+            </Form.Item>
+            <Form.Item noStyle dependencies={["reasonCode"]}>
+              {({ getFieldValue }) => (
+                <Form.Item
+                  name="note"
+                  label="给发布者的说明"
+                  rules={
+                    getFieldValue("reasonCode") === "OTHER"
+                      ? [
+                          {
+                            required: true,
+                            message: "选择其他原因时请填写说明",
+                          },
+                        ]
+                      : []
+                  }
+                >
+                  <Input.TextArea
+                    rows={4}
+                    maxLength={500}
+                    showCount
+                    placeholder="说明需要修改的具体内容，发布者将看到这段文字"
+                  />
+                </Form.Item>
+              )}
+            </Form.Item>
+          </Form>
+        </Modal>
       </section>
     </>
   );
