@@ -7,16 +7,14 @@ import {
   Input,
   message,
   Modal,
-  Popconfirm,
   Select,
-  Space,
   Table,
   type TableProps,
 } from "antd";
 const { RangePicker } = DatePicker;
 import { useTableQuery } from "~/hooks/useTableQuery";
 import { useLoaderData, useNavigation, useRevalidator } from "react-router";
-import { CheckOutlined, CloseOutlined, EyeOutlined } from "@ant-design/icons";
+import { EyeOutlined } from "@ant-design/icons";
 import type { Route } from "./+types";
 import { decideAudit, getAuditRecord } from "~/services/audit";
 import { useState } from "react";
@@ -38,28 +36,10 @@ export async function clientLoader({ request }: Route.ClientLoaderArgs) {
 export default function Index() {
   const [selectedPostAudit, setSelectedPostAudit] =
     useState<SelectedPostAudit | null>(null);
-  const [approvingId, setApprovingId] = useState<number | null>(null);
   const [rejectingId, setRejectingId] = useState<number | null>(null);
   const [rejectLoading, setRejectLoading] = useState(false);
   const [rejectForm] = Form.useForm();
   const revalidator = useRevalidator();
-
-  const handleApprove = async (id: number) => {
-    setApprovingId(id);
-    try {
-      const { code, msg } = await decideAudit(id, { decision: "APPROVE" });
-      if (code === 0) {
-        message.success(msg || "审核通过");
-        await revalidator.revalidate();
-      } else {
-        message.error(msg);
-      }
-    } catch {
-      message.error("审核失败，请稍后重试");
-    } finally {
-      setApprovingId(null);
-    }
-  };
 
   const handleReject = async () => {
     if (rejectingId == null) return;
@@ -162,37 +142,31 @@ export default function Index() {
               />
             );
           case 2:
-            if (record.status !== -1) {
-              return null;
-            }
             return (
-              <Space size="small">
-                <Button
-                  danger
-                  size="small"
-                  type="text"
-                  icon={<CloseOutlined />}
-                  onClick={() => setRejectingId(record.id)}
-                >
-                  驳回
-                </Button>
-                <Popconfirm
-                  title="确认通过该评论？"
-                  description="通过后评论将公开显示。"
-                  okText="通过"
-                  cancelText="取消"
-                  onConfirm={() => handleApprove(record.id)}
-                >
-                  <Button
-                    loading={approvingId === record.id}
-                    size="small"
-                    type="text"
-                    icon={<CheckOutlined />}
-                  >
-                    通过
-                  </Button>
-                </Popconfirm>
-              </Space>
+              <Button
+                onClick={async () => {
+                  try {
+                    const { data, code, msg } = await http(
+                      `/auditRecord/comments/${record.bizId}`,
+                    );
+                    if (code === 0) {
+                      setSelectedPostAudit({
+                        auditId: record.id,
+                        status: record.status,
+                        detail: data,
+                        auditMeta: record,
+                      });
+                    } else {
+                      message.error(msg || "评论详情加载失败");
+                    }
+                  } catch {
+                    message.error("评论详情加载失败，请稍后重试");
+                  }
+                }}
+                size="small"
+                type="text"
+                icon={<EyeOutlined />}
+              />
             );
           case 3:
             return (

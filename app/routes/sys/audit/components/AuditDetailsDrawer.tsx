@@ -56,8 +56,10 @@ export default function AuditDetailsDrawer({
     },
     {
       key: "title",
-      label: "标题",
-      children: <p className="font-medium">{record.title}</p>,
+      label: record.postTitle ? "所属帖子" : "标题",
+      children: (
+        <p className="font-medium">{record.title || record.postTitle || "-"}</p>
+      ),
     },
     ...(auditMeta?.rejectReasonCode
       ? [
@@ -98,6 +100,15 @@ export default function AuditDetailsDrawer({
       label: "内容",
       children: <p>{record.content || "-"}</p>,
     },
+    ...(record.replyToUsername
+      ? [
+          {
+            key: "replyToUsername",
+            label: "回复对象",
+            children: `@${record.replyToUsername}`,
+          },
+        ]
+      : []),
     {
       key: "creatorId",
       label: "用户",
