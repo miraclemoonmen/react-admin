@@ -17,5 +17,6 @@ export default [
     route("sys/log", `${systemPath}/log/index.tsx`),
     route("sys/audit", `${systemPath}/audit/index.tsx`),
     route("sys/report", `${systemPath}/report/index.tsx`),
+    route("sys/content", `${systemPath}/content/index.tsx`),
   ]),
 ] satisfies RouteConfig;

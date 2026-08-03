@@ -127,7 +127,7 @@ export interface CommentRecord {
   id: string;
   creatorId: string;
   username: string;
-  content: string;
+  content: string | null;
   replyToUsername: string | null;
   postId: string;
   postTitle: string;
@@ -157,6 +157,28 @@ export interface ReportRecord {
   reviewerName: string | null;
   reviewedAt: string | null;
   createdAt: string;
+}
+
+export interface ManagedContent {
+  id: string;
+  type: "POST" | "COMMENT";
+  authorId: string;
+  authorName: string;
+  title: string | null;
+  content: string;
+  status: number;
+  postId: string | null;
+  postTitle: string | null;
+  rootId: string | null;
+  poiName: string | null;
+  commentCount: number | null;
+  images: string[];
+  createdAt: string;
+  deletedAt: string | null;
+  deleteSource: "USER" | "ADMIN" | "REPORT" | null;
+  deleteReason: string | null;
+  deletedBy: string | null;
+  canRestore: boolean;
 }
 
 export interface OperationLog {

@@ -6,6 +6,7 @@ import type { MenuProps } from "antd";
 const MENU_DEFAULT_PARAMS: Record<string, string> = {
   "/sys/audit": "?status=-1",
   "/sys/report": "?status=-1",
+  "/sys/content": "?type=posts&deleted=false",
 };
 
 export default function AdminMenu({ menu }: { menu: MenuProps["items"] }) {
