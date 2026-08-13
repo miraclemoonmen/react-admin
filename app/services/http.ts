@@ -55,7 +55,7 @@ export async function http<T = unknown>(
 
   if (method.toUpperCase() === "GET" && params) {
     fetchUrl += params;
-  } else if (data) {
+  } else if (data !== undefined) {
     if (data instanceof FormData) {
       body = data;
     } else {
@@ -78,7 +78,7 @@ export async function http<T = unknown>(
     if (res.status === 403) {
       throw new Response("抱歉，你无权访问该页面", { status: 403 });
     }
-    throw new Response("抱歉，服务器出错了", { status: 500 });
+    throw new Response("抱歉，服务器出错了", { status: res.status });
   }
 
   return parseApiResult<T>(await res.json());

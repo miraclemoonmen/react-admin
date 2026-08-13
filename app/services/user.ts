@@ -26,21 +26,21 @@ export async function getUsers(params: QueryParams) {
   });
 }
 
-export async function create(data: UserMutationInput) {
+export async function createUser(data: UserMutationInput) {
   return http<boolean>(`/users`, {
     method: "POST",
     data,
   });
 }
 
-export async function update(data: UserMutationInput & { id: string }) {
+export async function updateUser(data: UserMutationInput & { id: string }) {
   return http<boolean>(`/users/${data.id}`, {
     method: "PATCH",
     data,
   });
 }
 
-export async function remove(data: { id: string }) {
+export async function removeUser(data: { id: string }) {
   return http<boolean>(`/users/${data.id}`, {
     method: "DELETE",
   });

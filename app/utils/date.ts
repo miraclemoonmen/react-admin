@@ -16,7 +16,10 @@ export function formatDateTime(value: string | null | undefined): string {
   if (Number.isNaN(date.getTime())) return value;
 
   const parts = Object.fromEntries(
-    DATE_TIME_FORMATTER.formatToParts(date).map(part => [part.type, part.value]),
+    DATE_TIME_FORMATTER.formatToParts(date).map(part => [
+      part.type,
+      part.value,
+    ]),
   );
 
   return `${parts.year}-${parts.month}-${parts.day} ${parts.hour}:${parts.minute}:${parts.second}`;

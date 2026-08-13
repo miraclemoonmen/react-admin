@@ -30,7 +30,7 @@ export default function Login() {
   useEffect(() => {
     if (!actionData) return;
     const { msg } = actionData;
-    message["error"](msg);
+    message.error(msg);
   }, [actionData]);
 
   return (
@@ -39,7 +39,10 @@ export default function Login() {
       style={{ backgroundImage: `url(${loginBg})` }}
     >
       <section className="grid min-h-[520px] w-full max-w-[1200px] self-center justify-self-center overflow-hidden rounded-2xl bg-white shadow-2xl lg:h-[680px] lg:grid-cols-2">
-        <aside className="relative hidden h-full w-full bg-linear-to-br from-blue-500 to-blue-700 p-12 text-white lg:block" aria-hidden="true">
+        <aside
+          className="relative hidden h-full w-full bg-linear-to-br from-blue-500 to-blue-700 p-12 text-white lg:block"
+          aria-hidden="true"
+        >
           <div className="absolute top-20 left-20 w-64 bg-white text-slate-800 rounded-xl shadow-xl p-4 -rotate-6">
             <div className="h-28 bg-yellow-200 rounded-lg mb-3"></div>
             <h4 className="text-sm font-semibold mb-2">

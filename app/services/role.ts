@@ -1,9 +1,5 @@
 import { http } from "~/services/http";
-import type {
-  PermissionTemplate,
-  Role,
-  RoleMutationInput,
-} from "~/types/api";
+import type { PermissionTemplate, Role, RoleMutationInput } from "~/types/api";
 
 export async function getRoleList() {
   return http<Role[]>(`/roles`, {
@@ -30,7 +26,9 @@ export async function getMenuIdsByRoleId(id: number) {
   });
 }
 
-export async function updateRolePermissions(data: RoleMutationInput & { id: number }) {
+export async function updateRolePermissions(
+  data: RoleMutationInput & { id: number },
+) {
   return http<boolean>(`/roles/${data.id}`, {
     method: "PUT",
     data,
@@ -39,6 +37,6 @@ export async function updateRolePermissions(data: RoleMutationInput & { id: numb
 
 export async function removeRole(id: number) {
   return http<boolean>(`/roles/${id}`, {
-    method: "DELETE"
+    method: "DELETE",
   });
 }

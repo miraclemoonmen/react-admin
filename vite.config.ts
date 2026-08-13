@@ -6,10 +6,12 @@ import devtoolsJson from "vite-plugin-devtools-json";
 import { visualizer } from "rollup-plugin-visualizer";
 import { compression } from "vite-plugin-compression2";
 import babel from "vite-plugin-babel";
+import { resolve, sep } from "node:path";
 
 const ReactCompilerConfig = {
   /* ... */
 };
+const appDirectory = `${resolve(process.cwd(), "app")}${sep}`;
 
 export default defineConfig({
   plugins: [
@@ -20,12 +22,22 @@ export default defineConfig({
     compression({
       algorithms: ["gzip"],
     }),
-    visualizer({
-      filename: "stats.html",
-      gzipSize: true, // 显示压缩后的大小
-    }),
+    process.env.ANALYZE === "true" &&
+      visualizer({
+        filename: "stats.html",
+        gzipSize: true,
+      }),
     babel({
-      filter: /\.[jt]sx?$/,
+      // React Compiler only needs to process application code. Running Babel
+      // over precompiled dependencies substantially slows builds and can alter
+      // third-party production bundles.
+      filter: id => {
+        return (
+          !id.includes("?") &&
+          id.startsWith(appDirectory) &&
+          /\.[jt]sx?$/.test(id)
+        );
+      },
       babelConfig: {
         presets: ["@babel/preset-typescript"],
         plugins: [["babel-plugin-react-compiler", ReactCompilerConfig]],
@@ -37,28 +49,6 @@ export default defineConfig({
       "/console": {
         target: "http://localhost:8080",
         changeOrigin: true,
-      },
-    },
-  },
-  build: {
-    rollupOptions: {
-      output: {
-        manualChunks(id) {
-          if (id.includes("node_modules/react-dom")) {
-            return "react-dom-vendor";
-          }
-          if (id.includes("node_modules/react/")) {
-            return "react-core";
-          }
-          if (
-            id.includes("node_modules/antd") ||
-            id.includes("node_modules/@ant-design") ||
-            id.includes("node_modules/@rc-component") ||
-            id.includes("node_modules/rc-")
-          ) {
-            return "vendor-antd";
-          }
-        },
       },
     },
   },

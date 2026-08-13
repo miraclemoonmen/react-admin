@@ -1,26 +1,13 @@
-import {
-  Descriptions,
-  type DescriptionsProps,
-  Drawer,
-  Image,
-} from "antd";
+import { Descriptions, type DescriptionsProps, Drawer, Image } from "antd";
 import type { ManagedContent } from "~/types/api";
 import { formatDateTime } from "~/utils/date";
+import {
+  CONTENT_DELETE_SOURCE_LABELS,
+  CONTENT_STATUS_LABELS,
+} from "~/constants/content";
 
 const endpoint = import.meta.env.VITE_MINIO_ENDPOINT;
 const bucket = import.meta.env.VITE_BUCKET_POSTS;
-
-const STATUS_LABELS: Record<number, string> = {
-  [-1]: "审核中",
-  0: "已发布",
-  1: "需修改",
-};
-
-const SOURCE_LABELS: Record<string, string> = {
-  USER: "作者删除",
-  ADMIN: "管理删除",
-  REPORT: "举报处置",
-};
 
 interface Props {
   detail: ManagedContent | null;
@@ -42,7 +29,7 @@ export default function ContentDetailsDrawer({
     {
       key: "status",
       label: "状态",
-      children: STATUS_LABELS[detail.status] || detail.status,
+      children: CONTENT_STATUS_LABELS[detail.status] || detail.status,
     },
     ...(detail.title
       ? [{ key: "title", label: "标题", children: detail.title }]
@@ -69,7 +56,8 @@ export default function ContentDetailsDrawer({
             key: "source",
             label: "删除来源",
             children:
-              SOURCE_LABELS[detail.deleteSource || ""] || "历史删除",
+              CONTENT_DELETE_SOURCE_LABELS[detail.deleteSource || ""] ||
+              "历史删除",
           },
           {
             key: "deleted",

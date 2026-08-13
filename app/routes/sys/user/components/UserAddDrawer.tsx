@@ -11,24 +11,25 @@ import {
   Space,
 } from "antd";
 import { useRevalidator } from "react-router";
-import { create } from "~/services/user";
-import { useRoleStore } from "~/stores/useRoleStore";
-import type { UserMutationInput } from "~/types/api";
+import { createUser } from "~/services/user";
+import { invalidateRoles } from "~/services/roleCache";
+import type { Role, UserMutationInput } from "~/types/api";
 
 interface Props {
   open: boolean;
   onClose: () => void;
+  roles: Role[];
 }
 
-export default function UserAddDrawer({ open, onClose }: Props) {
+export default function UserAddDrawer({ open, onClose, roles }: Props) {
   const [form] = Form.useForm<UserMutationInput>();
   const revalidator = useRevalidator();
   const onFinish = async (values: UserMutationInput) => {
-    const { msg, code } = await create(values);
+    const { msg, code } = await createUser(values);
     if (code === 0) {
       onClose();
       form.resetFields();
-      useRoleStore.getState().reset();
+      invalidateRoles();
       await revalidator.revalidate();
     }
     message[code === 0 ? "success" : "error"](msg);
@@ -114,7 +115,7 @@ export default function UserAddDrawer({ open, onClose }: Props) {
               label: "roleName",
             }}
             mode="multiple"
-            options={useRoleStore.getState().allRoles}
+            options={roles}
           />
         </Form.Item>
       </Form>

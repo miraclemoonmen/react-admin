@@ -9,11 +9,8 @@ import {
 } from "antd";
 import { useState } from "react";
 import { decideAudit } from "~/services/audit";
-import type {
-  AuditRecord,
-  CommentRecord,
-  PostRecord,
-} from "~/types/api";
+import type { AuditRecord, CommentRecord, PostRecord } from "~/types/api";
+import { formatDateTime } from "~/utils/date";
 const endpoint = import.meta.env.VITE_MINIO_ENDPOINT;
 const bucket = import.meta.env.VITE_BUCKET_POSTS;
 const reasonLabels: Record<string, string> = {
@@ -134,7 +131,7 @@ export default function AuditDetailsDrawer({
     {
       key: "createdAt",
       label: "创建时间",
-      children: record.createdAt,
+      children: formatDateTime(record.createdAt),
     },
   ];
   if (images.length > 0) {

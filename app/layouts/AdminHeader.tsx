@@ -1,4 +1,4 @@
-import { Avatar, Button, Dropdown, type MenuProps } from "antd";
+import { Avatar, Button, Dropdown, message, type MenuProps } from "antd";
 import {
   LogoutOutlined,
   MenuFoldOutlined,
@@ -6,7 +6,7 @@ import {
   UserOutlined,
 } from "@ant-design/icons";
 import { Layout } from "antd";
-import { useAuthStore } from "~/stores/useAuthStore";
+import { logout } from "~/services/user";
 import { useState } from "react";
 const { Header } = Layout;
 
@@ -24,11 +24,16 @@ export default function AdminHeader({
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const onClick: MenuProps["onClick"] = async ({ key }) => {
     switch (key) {
-      case "3":
+      case "logout":
         setIsLoggingOut(true);
         try {
-          await useAuthStore.getState().logout();
+          const result = await logout();
+          if (result.code !== 0) throw new Error(result.msg || "退出失败");
           window.location.replace("/login");
+        } catch (error) {
+          message.error(
+            error instanceof Error ? error.message : "退出失败，请重试",
+          );
         } finally {
           setIsLoggingOut(false);
         }
@@ -36,7 +41,7 @@ export default function AdminHeader({
   };
   const menuItems: MenuProps["items"] = [
     {
-      key: "3",
+      key: "logout",
       label: "退出登录",
       icon: <LogoutOutlined />,
       danger: true,

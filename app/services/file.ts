@@ -27,7 +27,7 @@ export async function confirmUpload(id: string) {
   });
 }
 
-export async function remove(id: string) {
+export async function removeFile(id: string) {
   return http<boolean>(`/files/${id}`, {
     method: "DELETE",
   });

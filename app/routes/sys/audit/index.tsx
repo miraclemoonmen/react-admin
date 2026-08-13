@@ -16,16 +16,18 @@ import { useTableQuery } from "~/hooks/useTableQuery";
 import { useLoaderData, useNavigation, useRevalidator } from "react-router";
 import { EyeOutlined } from "@ant-design/icons";
 import type { Route } from "./+types";
-import { decideAudit, getAuditRecord } from "~/services/audit";
+import {
+  decideAudit,
+  getAuditRecord,
+  getCommentAuditDetail,
+  getPostAuditDetail,
+} from "~/services/audit";
 import { useState } from "react";
 import AuditDetailsDrawer from "~/routes/sys/audit/components/AuditDetailsDrawer";
-import { http, requireApiSuccess } from "~/services/http";
-import type {
-  AuditRecord,
-  CommentRecord,
-  PostRecord,
-} from "~/types/api";
+import { requireApiSuccess } from "~/services/http";
+import type { AuditRecord, CommentRecord, PostRecord } from "~/types/api";
 import { isFormValidationError } from "~/utils/errors";
+import { formatDateTime } from "~/utils/date";
 
 interface SelectedPostAudit {
   auditId: number;
@@ -55,6 +57,25 @@ export default function Index() {
   const [rejectLoading, setRejectLoading] = useState(false);
   const [rejectForm] = Form.useForm();
   const revalidator = useRevalidator();
+
+  const openAuditDetail = async (record: AuditRecord) => {
+    try {
+      const detail =
+        record.bizType === 1
+          ? requireApiSuccess(await getPostAuditDetail(record.bizId))
+          : requireApiSuccess(await getCommentAuditDetail(record.bizId));
+      setSelectedPostAudit({
+        auditId: record.id,
+        status: record.status,
+        detail,
+        auditMeta: record,
+      });
+    } catch {
+      message.error(
+        `${record.bizType === 1 ? "帖子" : "评论"}详情加载失败，请稍后重试`,
+      );
+    }
+  };
 
   const handleReject = async () => {
     if (rejectingId == null) return;
@@ -127,6 +148,7 @@ export default function Index() {
     {
       title: "时间",
       dataIndex: "createdAt",
+      render: (value: string) => formatDateTime(value),
     },
     {
       title: "操作",
@@ -134,62 +156,14 @@ export default function Index() {
       render: (_, record) => {
         switch (record.bizType) {
           case 1:
-            return (
-              <Button
-                onClick={async () => {
-                  try {
-                    const { data, code, msg } = await http<PostRecord>(
-                      `/auditRecord/posts/${record.bizId}`,
-                    );
-                    if (code === 0) {
-                      const detail = requireApiSuccess({ code, data, msg });
-                      setSelectedPostAudit({
-                        auditId: record.id,
-                        status: record.status,
-                        detail,
-                        auditMeta: record,
-                      });
-                    } else {
-                      message.error(msg || "帖子详情加载失败");
-                    }
-                  } catch {
-                    message.error("帖子详情加载失败，请稍后重试");
-                  }
-                }}
-                size="small"
-                type="text"
-                icon={<EyeOutlined />}
-                aria-label="查看帖子审核详情"
-                title="查看详情"
-              />
-            );
           case 2:
             return (
               <Button
-                onClick={async () => {
-                  try {
-                    const { data, code, msg } = await http<CommentRecord>(
-                      `/auditRecord/comments/${record.bizId}`,
-                    );
-                    if (code === 0) {
-                      const detail = requireApiSuccess({ code, data, msg });
-                      setSelectedPostAudit({
-                        auditId: record.id,
-                        status: record.status,
-                        detail,
-                        auditMeta: record,
-                      });
-                    } else {
-                      message.error(msg || "评论详情加载失败");
-                    }
-                  } catch {
-                    message.error("评论详情加载失败，请稍后重试");
-                  }
-                }}
+                onClick={() => void openAuditDetail(record)}
                 size="small"
                 type="text"
                 icon={<EyeOutlined />}
-                aria-label="查看评论审核详情"
+                aria-label={`查看${record.bizType === 1 ? "帖子" : "评论"}审核详情`}
                 title="查看详情"
               />
             );
@@ -212,7 +186,7 @@ export default function Index() {
   const data = useLoaderData<typeof clientLoader>();
 
   const navigation = useNavigation();
-  const { form, formInitialValues, handleSearch, handleReset, onPageChange } =
+  const { form, initialValues, handleSearch, handleReset, onPageChange } =
     useTableQuery<AuditQueryForm>({
       dateFields: ["createdAtRange"],
     });
@@ -230,7 +204,7 @@ export default function Index() {
           <Form
             form={form}
             layout="inline"
-            initialValues={formInitialValues()}
+            initialValues={initialValues}
             onValuesChange={(_, allValues) => {
               handleSearch(allValues);
             }}
@@ -276,21 +250,23 @@ export default function Index() {
             onChange: (p, ps) => onPageChange(p, ps),
           }}
         />
-        {selectedPostAudit && <AuditDetailsDrawer
-          auditId={selectedPostAudit?.auditId ?? -1}
-          status={selectedPostAudit?.status ?? null}
-          record={selectedPostAudit.detail}
-          auditMeta={selectedPostAudit.auditMeta}
-          open
-          onClose={() => setSelectedPostAudit(null)}
-          onApproved={async () => {
-            setSelectedPostAudit(null);
-            await revalidator.revalidate();
-          }}
-          onRejectRequest={() => {
-            if (selectedPostAudit) setRejectingId(selectedPostAudit.auditId);
-          }}
-        />}
+        {selectedPostAudit && (
+          <AuditDetailsDrawer
+            auditId={selectedPostAudit?.auditId ?? -1}
+            status={selectedPostAudit?.status ?? null}
+            record={selectedPostAudit.detail}
+            auditMeta={selectedPostAudit.auditMeta}
+            open
+            onClose={() => setSelectedPostAudit(null)}
+            onApproved={async () => {
+              setSelectedPostAudit(null);
+              await revalidator.revalidate();
+            }}
+            onRejectRequest={() => {
+              if (selectedPostAudit) setRejectingId(selectedPostAudit.auditId);
+            }}
+          />
+        )}
         <Modal
           title="驳回审核"
           open={rejectingId !== null}

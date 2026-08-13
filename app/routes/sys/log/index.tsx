@@ -18,6 +18,7 @@ import LogDetailsDrawer from "~/routes/sys/log/components/LogDetailsDrawer";
 import { EyeOutlined } from "@ant-design/icons";
 import type { OperationLog } from "~/types/api";
 import { requireApiSuccess } from "~/services/http";
+import { formatDateTime } from "~/utils/date";
 
 interface LogQueryForm extends Record<string, unknown> {
   keyword?: string;
@@ -73,6 +74,7 @@ export default function Index() {
     {
       title: "时间",
       dataIndex: "createdAt",
+      render: (value: string) => formatDateTime(value),
     },
     {
       title: "操作",
@@ -93,7 +95,7 @@ export default function Index() {
     },
   ];
 
-  const { form, formInitialValues, handleSearch, handleReset, onPageChange } =
+  const { form, initialValues, handleSearch, handleReset, onPageChange } =
     useTableQuery<LogQueryForm>({
       dateFields: ["createdAtRange"],
     });
@@ -114,7 +116,7 @@ export default function Index() {
           <Form
             form={form}
             layout="inline"
-            initialValues={formInitialValues()}
+            initialValues={initialValues}
             onValuesChange={(_, allValues) => {
               handleSearch(allValues);
             }}

@@ -13,10 +13,10 @@ import {
   Tag,
 } from "antd";
 import { useLoaderData, useNavigation, useRevalidator } from "react-router";
-import { getUsers, remove } from "~/services/user";
-import { useState } from "react";
+import { getUsers, removeUser } from "~/services/user";
+import { useMemo, useState } from "react";
 const { RangePicker } = DatePicker;
-import { Dayjs } from "dayjs";
+import type { Dayjs } from "dayjs";
 import UserAddDrawer from "~/routes/sys/user/components/UserAddDrawer";
 import UserEditDrawer from "~/routes/sys/user/components/UserEditDrawer";
 import {
@@ -25,11 +25,12 @@ import {
   ExclamationCircleFilled,
 } from "@ant-design/icons";
 import { useTableQuery } from "~/hooks/useTableQuery";
-import RoleCars from "~/routes/sys/user/components/RoleCards";
-import { useRoleStore } from "~/stores/useRoleStore";
+import RoleCards from "~/routes/sys/user/components/RoleCards";
+import { getCachedRoles } from "~/services/roleCache";
 import type { Route } from "./+types";
 import type { ConsoleUser } from "~/types/api";
 import { requireApiSuccess } from "~/services/http";
+import { formatDateTime } from "~/utils/date";
 
 interface FormValues extends Record<string, unknown> {
   keyword?: string;
@@ -41,7 +42,7 @@ export async function clientLoader({ request }: Route.ActionArgs) {
   const url = new URL(request.url);
 
   const [rolesRes, usersRes] = await Promise.all([
-    useRoleStore.getState().getAllRoles(),
+    getCachedRoles(),
     getUsers(url.search),
   ]);
   if (usersRes.code !== 0) {
@@ -60,6 +61,11 @@ export default function User() {
   });
   const [currentRecord, setCurrentRecord] = useState<ConsoleUser | null>(null);
   const revalidator = useRevalidator();
+  const { users, roles } = useLoaderData<typeof clientLoader>();
+  const roleNames = useMemo(
+    () => Object.fromEntries(roles.map(role => [role.id, role.roleName])),
+    [roles],
+  );
   const columns: TableProps<ConsoleUser>["columns"] = [
     {
       title: "用户名",
@@ -75,7 +81,7 @@ export default function User() {
       render: (_, record) => (
         <Flex gap="small" align="center" wrap>
           {record.roles.map(item => (
-            <Tag key={item}>{useRoleStore.getState().rolesMap?.[item] ?? `角色 ${item}`}</Tag>
+            <Tag key={item}>{roleNames[item] ?? `角色 ${item}`}</Tag>
           ))}
         </Flex>
       ),
@@ -87,6 +93,7 @@ export default function User() {
     {
       title: "最后登录时间",
       dataIndex: "lastLoginAt",
+      render: (value: string | null) => formatDateTime(value),
     },
     {
       title: "操作",
@@ -110,7 +117,7 @@ export default function User() {
             title="确认删除该用户？"
             description="删除后该用户将无法登录，且关联数据可能受影响。"
             onConfirm={async () => {
-              const { code, msg } = await remove(record);
+              const { code, msg } = await removeUser(record);
               if (code === 0) {
                 message.success(msg);
                 await revalidator.revalidate();
@@ -135,17 +142,15 @@ export default function User() {
     },
   ];
   const navigation = useNavigation();
-  const { form, formInitialValues, handleSearch, handleReset, onPageChange } =
+  const { form, initialValues, handleSearch, handleReset, onPageChange } =
     useTableQuery<FormValues>({
       dateFields: ["createdAtRange"],
       numberFields: ["roles"],
     });
 
-  const { users } = useLoaderData<typeof clientLoader>();
-
   return (
     <>
-      <RoleCars />
+      <RoleCards />
       <div className="mb-6 mt-6">
         <h2 className="text-xl font-bold text-gray-800">用户</h2>
         <p className="text-sm text-gray-400 mt-1.5 leading-relaxed max-w-3xl">
@@ -157,7 +162,7 @@ export default function User() {
           <Form
             form={form}
             layout="inline"
-            initialValues={formInitialValues()}
+            initialValues={initialValues}
             onValuesChange={(_, allValues) => {
               handleSearch(allValues);
             }}
@@ -176,7 +181,7 @@ export default function User() {
                   label: "roleName",
                 }}
                 mode="multiple"
-                options={useRoleStore.getState().allRoles}
+                options={roles}
               />
             </Form.Item>
             <Form.Item name="createdAtRange">
@@ -192,12 +197,14 @@ export default function User() {
               新增
             </Button>
             <UserAddDrawer
+              roles={roles}
               open={modalStatus.userAdd}
               onClose={() =>
                 setModalStatus(pre => ({ ...pre, userAdd: false }))
               }
             />
             <UserEditDrawer
+              roles={roles}
               initialValues={currentRecord}
               open={modalStatus.userEdit}
               onClose={() => {

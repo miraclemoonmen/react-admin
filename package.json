@@ -10,24 +10,23 @@
     "lint": "eslint ."
   },
   "dependencies": {
-    "@react-router/node": "7.12.0",
-    "@react-router/serve": "7.12.0",
-    "ahooks": "^3.9.6",
+    "@react-router/node": "7.18.2",
+    "@react-router/serve": "7.18.2",
     "antd": "^6.3.0",
+    "dayjs": "^1.11.21",
     "isbot": "^5.1.31",
     "motion": "^12.23.26",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
-    "react-router": "7.12.0",
-    "vite-plugin-babel": "^1.5.1",
-    "zustand": "^5.0.9"
+    "react-router": "7.18.2",
+    "vite-plugin-babel": "^1.5.1"
   },
   "devDependencies": {
+    "@babel/preset-typescript": "^7.29.7",
     "@eslint/js": "^9.39.2",
-    "@react-router/dev": "7.12.0",
+    "@react-router/dev": "7.18.2",
     "@tailwindcss/vite": "^4.1.13",
     "@types/node": "^22",
-    "@types/qs": "^6.14.0",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
     "babel-plugin-react-compiler": "^1.0.0",

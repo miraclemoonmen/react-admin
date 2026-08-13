@@ -5,7 +5,7 @@ import {
   updateRolePermissions,
 } from "~/services/role";
 import { useEffect, useState } from "react";
-import { useRoleStore } from "~/stores/useRoleStore";
+import { invalidateRoles } from "~/services/roleCache";
 import { useRevalidator } from "react-router";
 import type { PermissionTemplate, Role, RoleMutationInput } from "~/types/api";
 import { getErrorMessage } from "~/utils/errors";
@@ -33,15 +33,17 @@ export default function RolePermissionEditModal({
   useEffect(() => {
     if (open && data) {
       setLoadError("");
-      Promise.all([getPermissionList(), getMenuIdsByRoleId(data.id)]).then(
-        ([templateResult, permissionResult]) => {
+      Promise.all([getPermissionList(), getMenuIdsByRoleId(data.id)])
+        .then(([templateResult, permissionResult]) => {
           const tplData = requireApiSuccess(templateResult);
           const perData = requireApiSuccess(permissionResult);
           setPermissionTree(tplData);
           setSelectedKeys(perData);
           form.setFieldsValue(data);
-        },
-      ).catch(error => setLoadError(getErrorMessage(error, "角色权限加载失败")));
+        })
+        .catch(error =>
+          setLoadError(getErrorMessage(error, "角色权限加载失败")),
+        );
     }
   }, [data, form, open]);
 
@@ -58,7 +60,7 @@ export default function RolePermissionEditModal({
       message[code === 0 ? "success" : "error"](msg);
       if (code === 0) {
         onClose();
-        useRoleStore.getState().reset();
+        invalidateRoles();
         await revalidator.revalidate();
       }
     } catch (error) {
@@ -96,7 +98,11 @@ export default function RolePermissionEditModal({
       }
     >
       <section>
-        {loadError && <p role="alert" className="mb-4 text-sm text-red-600">{loadError}</p>}
+        {loadError && (
+          <p role="alert" className="mb-4 text-sm text-red-600">
+            {loadError}
+          </p>
+        )}
         <h3 className="text-lg font-bold text-[#4A4A65]">基本信息</h3>
         <Form
           form={form}

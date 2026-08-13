@@ -1,7 +1,7 @@
 import { Button, Checkbox, Form, Input, message, Modal } from "antd";
 import { getPermissionList, addRole } from "~/services/role";
 import { useEffect, useState } from "react";
-import { useRoleStore } from "~/stores/useRoleStore";
+import { invalidateRoles } from "~/services/roleCache";
 import { useRevalidator } from "react-router";
 import type { PermissionTemplate, RoleMutationInput } from "~/types/api";
 import { getErrorMessage } from "~/utils/errors";
@@ -29,7 +29,9 @@ export default function RolePermissionEditModal({ open, onClose }: Props) {
         .then(result => {
           setPermissionTree(requireApiSuccess(result));
         })
-        .catch(error => setLoadError(getErrorMessage(error, "权限列表加载失败")));
+        .catch(error =>
+          setLoadError(getErrorMessage(error, "权限列表加载失败")),
+        );
     }
   }, [open]);
 
@@ -46,7 +48,7 @@ export default function RolePermissionEditModal({ open, onClose }: Props) {
         onClose();
         form.resetFields();
         setSelectedKeys([]);
-        useRoleStore.getState().reset();
+        invalidateRoles();
         await revalidator.revalidate();
       }
     } catch (error) {
@@ -84,7 +86,11 @@ export default function RolePermissionEditModal({ open, onClose }: Props) {
       }
     >
       <section>
-        {loadError && <p role="alert" className="mb-4 text-sm text-red-600">{loadError}</p>}
+        {loadError && (
+          <p role="alert" className="mb-4 text-sm text-red-600">
+            {loadError}
+          </p>
+        )}
         <h3 className="text-lg font-bold text-[#4A4A65]">基本信息</h3>
         <Form
           form={form}

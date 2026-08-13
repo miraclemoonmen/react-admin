@@ -28,17 +28,19 @@ import {
   Upload,
   type UploadProps,
 } from "antd";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useRef } from "react";
 import useUpload, { type PreviewUploadFile } from "~/hooks/useUpload";
 import { useTableQuery } from "~/hooks/useTableQuery";
-import { Dayjs } from "dayjs";
+import type { Dayjs } from "dayjs";
 import { useLoaderData, useNavigation, useRevalidator } from "react-router";
 import { getFiles } from "~/services/file";
-import { remove } from "~/services/file";
+import { removeFile } from "~/services/file";
 import type { Route } from "./+types";
 import type { FileRecord } from "~/types/api";
 import { requireApiSuccess } from "~/services/http";
+import { formatDateTime } from "~/utils/date";
+import { formatFileSize } from "~/utils/format";
 const { Dragger } = Upload;
 const { RangePicker } = DatePicker;
 
@@ -73,7 +75,8 @@ export default function Index() {
   useEffect(
     () => () => {
       fileListRef.current.forEach(file => {
-        if (file.localUrl?.startsWith("blob:")) URL.revokeObjectURL(file.localUrl);
+        if (file.localUrl?.startsWith("blob:"))
+          URL.revokeObjectURL(file.localUrl);
       });
     },
     [],
@@ -90,20 +93,22 @@ export default function Index() {
     },
     customRequest,
     onChange: info => {
-      const file = info.file;
-      if (file.status === "error" && file.percent === 0) {
-        file.percent = 50;
-      }
-      const nextFileList = [...info.fileList];
-      fileList.forEach(current => {
-        if (
-          current.localUrl?.startsWith("blob:") &&
-          !nextFileList.some(next => next.uid === current.uid)
-        ) {
-          URL.revokeObjectURL(current.localUrl);
-        }
+      const nextFileList = info.fileList.map(file =>
+        file.status === "error" && file.percent === 0
+          ? { ...file, percent: 50 }
+          : file,
+      );
+      setFileList(currentFiles => {
+        currentFiles.forEach(current => {
+          if (
+            current.localUrl?.startsWith("blob:") &&
+            !nextFileList.some(next => next.uid === current.uid)
+          ) {
+            URL.revokeObjectURL(current.localUrl);
+          }
+        });
+        return nextFileList;
       });
-      setFileList(nextFileList);
     },
   };
   const columns: TableProps<FileRecord>["columns"] = [
@@ -118,9 +123,7 @@ export default function Index() {
     {
       title: "大小",
       dataIndex: "fileSize",
-      render: (_, record) => (
-        <>{(record.fileSize / (1024 * 1024)).toFixed(2)} MB</>
-      ),
+      render: (fileSize: number) => formatFileSize(fileSize),
     },
     {
       title: "上传状态",
@@ -139,6 +142,7 @@ export default function Index() {
     {
       title: "时间",
       dataIndex: "createdAt",
+      render: (value: string) => formatDateTime(value),
     },
     {
       title: "创建者",
@@ -172,7 +176,7 @@ export default function Index() {
             title={`删除${record.fileName}？`}
             description="此文件将从列表中移除。"
             onConfirm={async () => {
-              const { code, msg } = await remove(record.id);
+              const { code, msg } = await removeFile(record.id);
               if (code === 0) {
                 message.success(msg);
                 await revalidator.revalidate();
@@ -196,7 +200,7 @@ export default function Index() {
       ),
     },
   ];
-  const { form, formInitialValues, handleSearch, handleReset, onPageChange } =
+  const { form, initialValues, handleSearch, handleReset, onPageChange } =
     useTableQuery<FormValues>({
       dateFields: ["createdAtRange"],
     });
@@ -265,7 +269,7 @@ export default function Index() {
                         {file.name}
                       </span>
                       <span className="text-[12px] text-gray-400">
-                        {((file.size ?? 0) / (1024 * 1024)).toFixed(2)} MB
+                        {formatFileSize(file.size ?? 0)}
                       </span>
                     </div>
                   </div>
@@ -325,7 +329,7 @@ export default function Index() {
           <Form
             form={form}
             layout="inline"
-            initialValues={formInitialValues()}
+            initialValues={initialValues}
             onValuesChange={(_, allValues) => {
               handleSearch(allValues);
             }}

@@ -6,10 +6,10 @@ import { useState } from "react";
 import { useLoaderData, useRevalidator } from "react-router";
 import { DeleteTwoTone, ExclamationCircleFilled } from "@ant-design/icons";
 import { removeRole } from "~/services/role";
-import { useRoleStore } from "~/stores/useRoleStore";
+import { invalidateRoles } from "~/services/roleCache";
 import type { PageResult, Role, ConsoleUser } from "~/types/api";
 const ColorList = ["#1677ff", "#52c41a", "#faad14"];
-export default function RoleCars() {
+export default function RoleCards() {
   const [modalStatus, setModalStatus] = useState({
     permissionEdit: false,
     permissionAdd: false,
@@ -57,7 +57,7 @@ export default function RoleCars() {
                   {item.usernames.map((v, i) => (
                     <Avatar
                       style={{
-                        backgroundColor: ColorList[i],
+                        backgroundColor: ColorList[i % ColorList.length],
                       }}
                       key={v}
                     >
@@ -68,7 +68,7 @@ export default function RoleCars() {
                     <Avatar
                       style={{ color: "#f56a00", backgroundColor: "#fde3cf" }}
                     >
-                      +{item.userCount - 3}
+                      +{item.userCount - item.usernames.length}
                     </Avatar>
                   )}
                 </Avatar.Group>
@@ -96,7 +96,7 @@ export default function RoleCars() {
                     const { code, msg } = await removeRole(item.id);
                     if (code === 0) {
                       message.success(msg);
-                      useRoleStore.getState().reset();
+                      invalidateRoles();
                       await revalidator.revalidate();
                     } else {
                       message.error(msg);
@@ -119,7 +119,11 @@ export default function RoleCars() {
           ))}
           <div className="grid grid-cols-2 bg-white rounded-3xl px-6 shadow-sm border border-gray-50 min-h-36.75">
             <div className="flex flex-col justify-end">
-              <img className="w-26 h-30 object-contain" src={illustration} />
+              <img
+                alt="创建自定义角色"
+                className="w-26 h-30 object-contain"
+                src={illustration}
+              />
             </div>
             <div className="py-6 flex flex-col justify-between">
               <div className="flex flex-row-reverse">

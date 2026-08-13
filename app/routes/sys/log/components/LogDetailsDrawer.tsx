@@ -6,6 +6,7 @@ import {
   Typography,
 } from "antd";
 import type { OperationLog } from "~/types/api";
+import { formatDateTime } from "~/utils/date";
 const { Text } = Typography;
 interface Props {
   open: boolean;
@@ -52,7 +53,7 @@ export default function LogDetailsDrawer({ open, onClose, data }: Props) {
     {
       key: "time",
       label: "时间",
-      children: data.createdAt,
+      children: formatDateTime(data.createdAt),
     },
     {
       key: "cost",

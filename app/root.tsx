@@ -27,7 +27,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Links />
       </head>
       <body>
-        <ConfigProvider variant={"filled"} locale={zhCN} >
+        <ConfigProvider variant={"filled"} locale={zhCN}>
           {children}
         </ConfigProvider>
         <ScrollRestoration />

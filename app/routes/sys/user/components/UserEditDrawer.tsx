@@ -11,18 +11,24 @@ import {
   Space,
 } from "antd";
 import { useRevalidator } from "react-router";
-import { update } from "~/services/user";
+import { updateUser } from "~/services/user";
 import { useEffect } from "react";
-import { useRoleStore } from "~/stores/useRoleStore";
-import type { ConsoleUser, UserMutationInput } from "~/types/api";
+import { invalidateRoles } from "~/services/roleCache";
+import type { ConsoleUser, Role, UserMutationInput } from "~/types/api";
 
 interface Props {
   open: boolean;
   onClose: () => void;
   initialValues: ConsoleUser | null;
+  roles: Role[];
 }
 
-export default function UserAddDrawer({ open, onClose, initialValues }: Props) {
+export default function UserEditDrawer({
+  open,
+  onClose,
+  initialValues,
+  roles,
+}: Props) {
   const [form] = Form.useForm<UserMutationInput>();
   useEffect(() => {
     if (open && initialValues) {
@@ -38,10 +44,10 @@ export default function UserAddDrawer({ open, onClose, initialValues }: Props) {
   const revalidator = useRevalidator();
   const onFinish = async (values: UserMutationInput) => {
     if (!initialValues) return;
-    const { msg, code } = await update({ id: initialValues.id, ...values });
+    const { msg, code } = await updateUser({ id: initialValues.id, ...values });
     if (code === 0) {
       onClose();
-      useRoleStore.getState().reset();
+      invalidateRoles();
       await revalidator.revalidate();
     }
     message[code === 0 ? "success" : "error"](msg);
@@ -117,7 +123,7 @@ export default function UserAddDrawer({ open, onClose, initialValues }: Props) {
               label: "roleName",
             }}
             mode="multiple"
-            options={useRoleStore.getState().allRoles}
+            options={roles}
           />
         </Form.Item>
       </Form>

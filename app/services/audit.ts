@@ -1,5 +1,10 @@
 import { http } from "~/services/http";
-import type { AuditRecord, PageResult } from "~/types/api";
+import type {
+  AuditRecord,
+  CommentRecord,
+  PageResult,
+  PostRecord,
+} from "~/types/api";
 
 export async function getAuditRecord(params: string) {
   return http<PageResult<AuditRecord>>(`/auditRecord`, {
@@ -8,17 +13,11 @@ export async function getAuditRecord(params: string) {
   });
 }
 
-export async function approveCommentAudit(auditId: number) {
-  return http<null>(`/auditRecord/${auditId}/comments/approve`, {
-    method: "PUT",
-  });
-}
+export const getPostAuditDetail = (id: string) =>
+  http<PostRecord>(`/auditRecord/posts/${id}`);
 
-export async function approvePostAudit(auditId: number) {
-  return http<null>(`/auditRecord/${auditId}/approve`, {
-    method: "PUT",
-  });
-}
+export const getCommentAuditDetail = (id: string) =>
+  http<CommentRecord>(`/auditRecord/comments/${id}`);
 
 export type AuditDecision = {
   decision: "APPROVE" | "REJECT";
