@@ -1,3 +1,22 @@
-import { type RouteConfig, index } from "@react-router/dev/routes";
+import {
+  type RouteConfig,
+  index,
+  layout,
+  route,
+} from "@react-router/dev/routes";
 
-export default [index("routes/home.tsx")] satisfies RouteConfig;
+const rootPath = "routes";
+const systemPath = `${rootPath}/sys`;
+
+export default [
+  route("login", "routes/login.tsx"), //登录
+  layout("routes/index.tsx", [
+    index("routes/dashboard/index.tsx"),
+    route("sys/user", `${systemPath}/user/index.tsx`),
+    route("sys/file", `${systemPath}/file/index.tsx`),
+    route("sys/log", `${systemPath}/log/index.tsx`),
+    route("sys/audit", `${systemPath}/audit/index.tsx`),
+    route("sys/report", `${systemPath}/report/index.tsx`),
+    route("sys/content", `${systemPath}/content/index.tsx`),
+  ]),
+] satisfies RouteConfig;

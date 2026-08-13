@@ -1,15 +1,25 @@
 @import "tailwindcss";
 
-@theme {
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif,
-    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-}
-
 html,
 body {
-  @apply bg-white dark:bg-gray-950;
-
+  @apply min-h-screen;
   @media (prefers-color-scheme: dark) {
     color-scheme: dark;
   }
+}
+
+.ant-pagination {
+  @apply mb-0!;
+}
+
+.ant-upload-drag {
+  @apply bg-[#FAFAFA]! rounded-2xl! transition-all! duration-300!;
+}
+
+.ant-upload-list {
+  @apply mt-2!;
+}
+
+.ant-upload-list-item {
+  @apply shadow-sm transition-all! duration-300!;
 }
