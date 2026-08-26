@@ -38,7 +38,7 @@ interface FormValues extends Record<string, unknown> {
   createdAtRange?: [Dayjs, Dayjs];
 }
 
-export async function clientLoader({ request }: Route.ActionArgs) {
+export async function clientLoader({ request }: Route.ClientLoaderArgs) {
   const url = new URL(request.url);
 
   const [rolesRes, usersRes] = await Promise.all([

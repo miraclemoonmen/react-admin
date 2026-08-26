@@ -29,10 +29,17 @@ export default function RolePermissionEditModal({
   const [form] = Form.useForm<Omit<RoleMutationInput, "permissions">>();
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState("");
+  const [previousInput, setPreviousInput] = useState({ open, data });
+
+  // 提示属于当前打开状态及角色；权限请求和表单回填仍由 Effect 承担。
+  if (previousInput.open !== open || previousInput.data !== data) {
+    setPreviousInput({ open, data });
+    if (open && data) setLoadError("");
+  }
+
   const revalidator = useRevalidator();
   useEffect(() => {
     if (open && data) {
-      setLoadError("");
       Promise.all([getPermissionList(), getMenuIdsByRoleId(data.id)])
         .then(([templateResult, permissionResult]) => {
           const tplData = requireApiSuccess(templateResult);

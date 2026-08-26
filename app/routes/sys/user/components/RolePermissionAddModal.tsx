@@ -21,10 +21,16 @@ export default function RolePermissionEditModal({ open, onClose }: Props) {
   const [form] = Form.useForm<Omit<RoleMutationInput, "permissions">>();
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState("");
+  const [previousOpen, setPreviousOpen] = useState(open);
+
+  // 开启新一轮弹窗时重置提示，避免 Effect 中同步触发额外渲染。
+  if (previousOpen !== open) {
+    setPreviousOpen(open);
+    if (open) setLoadError("");
+  }
 
   useEffect(() => {
     if (open) {
-      setLoadError("");
       getPermissionList()
         .then(result => {
           setPermissionTree(requireApiSuccess(result));

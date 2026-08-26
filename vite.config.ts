@@ -1,24 +1,28 @@
 import { reactRouter } from "@react-router/dev/vite";
 import tailwindcss from "@tailwindcss/vite";
 import { defineConfig } from "vite";
-import tsconfigPaths from "vite-tsconfig-paths";
+import { fileURLToPath } from "node:url";
 import devtoolsJson from "vite-plugin-devtools-json";
 import { visualizer } from "rollup-plugin-visualizer";
 import { compression } from "vite-plugin-compression2";
 import babel from "vite-plugin-babel";
 import { resolve, sep } from "node:path";
 
-const ReactCompilerConfig = {
-  /* ... */
-};
+const ReactCompilerConfig = {};
 const appDirectory = `${resolve(process.cwd(), "app")}${sep}`;
 
 export default defineConfig({
+  resolve: {
+    alias: { "~": fileURLToPath(new URL("./app", import.meta.url)) },
+  },
+  build: {
+    // 保持 Vite 7 的 JavaScript 语法目标，不随构建工具升级提高门槛。
+    target: ["chrome107", "edge107", "firefox104", "safari16"],
+  },
   plugins: [
     devtoolsJson(),
     tailwindcss(),
     reactRouter(),
-    tsconfigPaths(),
     compression({
       algorithms: ["gzip"],
     }),
@@ -31,13 +35,8 @@ export default defineConfig({
       // React Compiler only needs to process application code. Running Babel
       // over precompiled dependencies substantially slows builds and can alter
       // third-party production bundles.
-      filter: id => {
-        return (
-          !id.includes("?") &&
-          id.startsWith(appDirectory) &&
-          /\.[jt]sx?$/.test(id)
-        );
-      },
+      include: `${appDirectory}**/*.{js,jsx,ts,tsx}`,
+      exclude: /\?/,
       babelConfig: {
         presets: ["@babel/preset-typescript"],
         plugins: [["babel-plugin-react-compiler", ReactCompilerConfig]],

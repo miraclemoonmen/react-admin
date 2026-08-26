@@ -15,7 +15,7 @@ type FieldType = {
   password?: string;
 };
 
-export async function clientAction({ request }: Route.ActionArgs) {
+export async function clientAction({ request }: Route.ClientActionArgs) {
   const res = await login(await request.formData());
   if (res.code === 0) {
     return redirect("/");
