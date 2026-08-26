@@ -6,15 +6,15 @@
 
 ## 当前阶段
 
-项目仍接近初始模板，适合按管理后台规范重新建设。后续应优先搭建认证、后台壳体、菜单、权限和基础请求层，再按真实模块接入后端接口。
+项目已有可运行的管理后台功能。后续以保留现有行为和真实接口契约的小步维护为主，不全量重写。
 
 ## 已确认事实
 
 - 这是 WinRide 的管理后台前端项目
-- 技术栈：React 19、React Router 7、TypeScript、Vite、Tailwind CSS 4
+- 技术栈：React 19、React Router 8、TypeScript 7、Vite 8、Tailwind CSS 4、Ant Design 6；Node 24/npm 11，SPA 模式
 - 配套后端仓库为 `/Users/heliang/private/WinRide-API`
 - 配套用户端仓库为 `/Users/heliang/private/WinRide`
-- 管理端预期覆盖用户、角色、权限、菜单、内容审核、文件和日志等模块
+- 管理端已覆盖登录、菜单、用户、角色权限、内容审核、举报、内容回收站、文件和日志等模块
 
 ## 协作要求
 
